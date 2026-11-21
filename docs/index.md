@@ -21,7 +21,7 @@ df = qrd.load(
 | Setting | Python | Environment variable | Default |
 |---|---|---|---|
 | Local data folder (skips the Hub) | `qrd.configure(data_dir=...)` | `QRD_DATA_DIR` | none |
-| Hub dataset repo | `qrd.configure(repo_id=...)` | `QRD_REPO_ID` | `Hardy-Z/quant-research-dataset` |
+| Hub dataset repo | `qrd.configure(repo_id=...)` | `QRD_REPO_ID` | `Hardy0102/quant-research-dataset` |
 | Revision (branch or tag) | `qrd.configure(revision=...)` | `QRD_REVISION` | `main` |
 | Download cache | `qrd.configure(cache_dir=...)` | `QRD_CACHE_DIR` | Hugging Face cache |
 | Extra registry folders | | `QRD_REGISTRY_PATH` | none |

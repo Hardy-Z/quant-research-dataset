@@ -131,7 +131,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--data-dir", help="prepared data folder (adds coverage)")
     s.add_argument("--out", default="docs", help="folder for datasets.md")
     s.add_argument("--card", help="also write the Hugging Face dataset card here")
-    s.add_argument("--repo-id", default="Hardy-Z/quant-research-dataset")
+    s.add_argument("--repo-id", default="Hardy0102/quant-research-dataset")
     s.set_defaults(func=_cmd_docs)
 
     s = sub.add_parser("verify", help="[maintainers] check prepared files against the manifest")
