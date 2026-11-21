@@ -61,7 +61,7 @@ info = qrd.describe("us_stock_daily")
         "code",
         """\
 aapl = qrd.us.get_stock_daily(tickers="AAPL", start="2025-01-01",
-                             columns=["date", "permno", "close", "ret", "mktcap"])
+                             columns=["date", "permno", "gvkey", "close", "ret", "mktcap"])
 aapl.tail()""",
     ),
     (

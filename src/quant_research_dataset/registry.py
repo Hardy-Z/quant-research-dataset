@@ -63,6 +63,7 @@ class ColumnSpec:
     description: str = ""
     unit: str | None = None
     source: str | None = None  # raw column name, when it differs from ``name``
+    derived: bool = False  # computed at build time by a ``build.options.enrich`` step
 
     @property
     def arrow_type(self) -> pa.DataType:
@@ -162,6 +163,7 @@ class DatasetSpec:
                 description=str(c.get("description", "")).strip(),
                 unit=c.get("unit"),
                 source=c.get("source"),
+                derived=bool(c.get("derived", False)),
             )
             for c in data["columns"]
         )
@@ -194,6 +196,8 @@ class DatasetSpec:
         src = b.get("source")
         if not src:
             raise RegistryError(f"build.source is required{where}")
+        if any(c.derived for c in columns) and "enrich" not in b.get("options", {}):
+            raise RegistryError(f"derived columns{where} need a build.options.enrich step")
         build = BuildSpec(
             source=tuple([src] if isinstance(src, str) else src),
             format=str(b.get("format", "parquet")),

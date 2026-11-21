@@ -40,7 +40,7 @@ def raw_table(
     n = len(next(iter(data.values())))
     out: dict[str, list[Any]] = {}
     for col in spec.columns:
-        if col.name in drop:
+        if col.name in drop or col.derived:
             continue
         values = data[col.name] if col.name in data else _filler(spec, col.name, n)
         out[col.source_name] = values
@@ -102,24 +102,22 @@ def write_fake_source(root: Path, reg: Registry) -> Path:
         _int_types(crsp),
     )
 
-    # --- CCM link table (CSV, LINKENDDT 'E' = active) -------------------------
-    ccm = reg.get("us/equity/stock_company_link")
+    # --- CCM link table (raw CSV, LINKENDDT 'E' = active) --------------------
     _csv(
         root / "WRDS_data/crsp/ccm_link_table.csv",
-        raw_table(
-            ccm,
-            {
-                "gvkey": ["001000", "002000", "003000"],
-                "permno": [10001, 10002, 10002],
-                "permco": [1, 2, 2],
-                "linktype": ["LC", "LU", "LX"],
-                "linkprim": ["P", "C", "P"],
-                "linkdt": ["2000-01-01", "2019-12-31", "2000-01-01"],
-                "linkenddt": ["E", "E", "2010-01-01"],
-                "liid": ["01", "01", "01"],
-                "tic": ["E", "BBB", "OLD"],  # ticker "E" must survive the 'E' null token
-            },
-        ),
+        {
+            "gvkey": ["001000", "002000", "003000"],
+            "conm": ["A CORP", "B CORP", "OLD CORP"],
+            "tic": ["E", "BBB", "OLD"],
+            "cusip": ["000000001", "000000002", "000000003"],
+            "LINKPRIM": ["P", "C", "P"],
+            "LIID": ["01", "01", "01"],
+            "LINKTYPE": ["LC", "LU", "LX"],  # LX is not a usable link type
+            "LPERMNO": [10001, 10002, 10002],
+            "LPERMCO": [1, 2, 2],
+            "LINKDT": ["2000-01-01", "2019-12-31", "2000-01-01"],
+            "LINKENDDT": ["E", "E", "2010-01-01"],
+        },
     )
 
     # --- Compustat quarterly and annual --------------------------------------

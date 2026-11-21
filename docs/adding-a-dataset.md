@@ -47,6 +47,24 @@ Column `type` is one of `bool`, `int8/16/32/64`, `float32/64`, `string`,
 name when it differs from `name`. CSV columns are read as text and converted
 explicitly, so identifiers with leading zeros survive.
 
+## Columns computed at build time
+
+A column can be derived from other source files instead of read from the raw
+table. Mark it `derived: true` and name an enrichment step in
+`build.options.enrich`. For example, US daily stocks get the company key that
+was linked to each stock on each date:
+
+```yaml
+build:
+  source: WRDS_data/crsp/crsp_daily_stock_*.parquet
+  options:
+    enrich: {function: us_stock_gvkey, source: WRDS_data/crsp/ccm_link_table.csv}
+columns:
+  - {name: gvkey, type: string, derived: true, description: Linked company key}
+```
+
+Steps are registered with `quant_research_dataset.links.register_enricher`.
+
 ## Build and check
 
 ```bash

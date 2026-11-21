@@ -18,12 +18,15 @@ adapter: us_fundamentals
 notes:
   - "Items ending in y (capxy, oancfy, ...) are fiscal year-to-date, not quarterly."
   - "datadate is the fiscal period end, not the date the numbers were public. Use load(..., point_in_time=True) for an available_date column."
-  - "Join to us/equity/stock_daily with qrd.merge_fundamentals()."
+  - "Join to us/equity/stock_daily with qrd.merge_fundamentals(), which matches on gvkey."
 build:
   source: WRDS_data/compustat/compustat_fundq_quarterly_*.parquet
+  options:
+    enrich: {function: us_fundamentals_permno, source: WRDS_data/crsp/ccm_link_table.csv}
 columns:
   - {name: gvkey, type: string, description: "Compustat company key (6 digits, zero padded)"}
   - {name: datadate, type: date32, description: "Fiscal period end date"}
+  - {name: permno, type: int32, derived: true, description: "Stock id (primary share class) linked to this company on datadate, from the CRSP/Compustat link table. Null when unlinked."}
   - {name: costat, type: string, description: "Company status: A=active, I=inactive"}
   - {name: curcdq, type: string, description: "ISO currency of reported values"}
   - {name: datafmt, type: string, description: "Data format (STD = standardized)"}

@@ -18,7 +18,7 @@ stocks = qrd.load(
     "us/equity/stock_daily",
     start="2024-01-01",
     end="2024-12-31",
-    columns=["date", "permno", "ret", "mktcap"],
+    columns=["date", "permno", "gvkey", "ret", "mktcap"],
     common_only=True,
 )
 
@@ -42,7 +42,7 @@ cleaning. This library does it once, in tested code, behind a small API:
 | Multi-GB files, slow to load | Year/month partitions + a manifest, so `load(start=..., end=...)` fetches only what it needs |
 | Different column names per vendor | Every dataset has a typed schema, snake_case names, units and descriptions in one YAML file |
 | Look-ahead bias in fundamentals | `point_in_time=True` adds `available_date` (report date, or a conservative lag) |
-| Joining stocks to company fundamentals | `stock_company_links()` and `merge_fundamentals()` apply the standard CRSP/Compustat link rules |
+| Joining stocks to company fundamentals | Links are applied at build time: stock rows carry `gvkey`, fundamentals carry `permno`; `merge_fundamentals()` joins point in time |
 | "Common stocks only" screens | `common_only=True` applies the CIZ-flag equivalent of `shrcd in (10, 11)` |
 | Option chains need context | `mid`, `spread`, `dte`, `spot`, `moneyness` and an interpolated zero rate |
 | US-only tools | Market-neutral design: `market/asset_class/dataset` ids, per-market adapters |
@@ -51,10 +51,9 @@ cleaning. This library does it once, in tested code, behind a small API:
 
 | Id | Content | Source | Coverage |
 |---|---|---|---|
-| `us/equity/stock_daily` | Daily prices, returns, volume and market cap of all US-listed stocks, incl. delisted | CRSP | 2015–2025, 23.1M rows |
-| `us/equity/stock_company_link` | Links stock ids (PERMNO) to company ids (gvkey) over time | CRSP/Compustat (CCM) | full history |
-| `us/fundamentals/quarterly` | Quarterly financial statements, 60+ items | Compustat | 2000–2026, 1.05M rows |
-| `us/fundamentals/annual` | Annual financial statements, 60+ items | Compustat | 2000–2026, 255K rows |
+| `us/equity/stock_daily` | Daily prices, returns, volume and market cap of all US-listed stocks, incl. delisted, with linked `gvkey` | CRSP | 2015–2025, 23.1M rows |
+| `us/fundamentals/quarterly` | Quarterly financial statements, 60+ items, with linked `permno` | Compustat | 2000–2026, 1.05M rows |
+| `us/fundamentals/annual` | Annual financial statements, 60+ items, with linked `permno` | Compustat | 2000–2026, 255K rows |
 | `us/options/spx_option_prices` | S&P 500 index option quotes, implied vol and greeks | OptionMetrics | 2015–2025, 34.3M rows |
 | `us/options/spx_vol_surface` | Standardized S&P 500 implied volatility surface | OptionMetrics | 2015–2025 |
 | `us/index/spx_daily` | S&P 500 index daily OHLC | OptionMetrics | 2015–2025 |

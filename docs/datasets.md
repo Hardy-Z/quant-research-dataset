@@ -7,7 +7,6 @@ Generated from the dataset registry by `qrd docs`. Do not edit by hand.
 | [`cn_hk/equity/ah_pairs`](#cn_hkequityah_pairs) | A/H dual-listed share pairs | static | Eastmoney A/H comparison board |
 | [`cn_hk/equity/daily_bars`](#cn_hkequitydaily_bars) | China A-share and Hong Kong H-share daily bars | daily | Yahoo Finance (via yfinance) |
 | [`cn_hk/fx/daily`](#cn_hkfxdaily) | CNY/HKD and USD/HKD daily exchange rates | daily | Yahoo Finance (via yfinance) |
-| [`us/equity/stock_company_link`](#usequitystock_company_link) | US stock-to-company identifier links | static | CRSP/Compustat Merged (CCM) database via WRDS |
 | [`us/equity/stock_daily`](#usequitystock_daily) | US stock daily prices and returns | daily | CRSP US Stock Database, CIZ (v2) format, via WRDS |
 | [`us/etf/bars_1min`](#usetfbars_1min) | US ETF 1-minute bars | intraday | Alpaca Markets historical stock bars (SIP feed) |
 | [`us/etf/bars_5min`](#usetfbars_5min) | US ETF 5-minute bars | intraday | Alpaca Markets historical stock bars (SIP feed) |
@@ -94,38 +93,6 @@ Daily exchange rates used to put A shares (CNY) and H shares (HKD) on the same c
 
 ## Market: `us`
 
-### `us/equity/stock_company_link`: US stock-to-company identifier links
-
-Maps Compustat companies (gvkey) to CRSP securities (permno) over time. Use it to join fundamentals to prices; qrd.stock_company_links() applies the standard link filters for you.
-
-**Source:** CRSP/Compustat Merged (CCM) database via WRDS  
-**License:** WRDS / CRSP subscription terms  
-**Frequency:** static  
-**Keys:** id `gvkey`, date `-`  
-**Aliases:** `stock_company_link`, `us_stock_company_link`
-
-**Coverage:** 39,770 rows, 34,761 distinct `gvkey`, 1.4 MB in 1 file(s).
-
-
-**Notes**
-
-- linkenddt is null while a link is still active (CRSP writes 'E').
-- Standard filter: linktype in (LC, LU) and linkprim in (P, C).
-
-| Column | Type | Unit | Description |
-|---|---|---|---|
-| `gvkey` | string |  | Compustat company key (6 digits |
-| `permno` | int32 |  | Linked CRSP PERMNO |
-| `permco` | int32 |  | Linked CRSP PERMCO |
-| `liid` | string |  | Compustat issue id of the linked security |
-| `linktype` | string |  | Link type: LC=confirmed, LU=unconfirmed but usable, others are weaker |
-| `linkprim` | string |  | Primary link marker: P=primary, C=primary per CRSP, J/N=secondary |
-| `linkdt` | date32 |  | First date the link is valid |
-| `linkenddt` | date32 |  | Last date the link is valid (null = still active) |
-| `conm` | string |  | Company name |
-| `tic` | string |  | Compustat ticker |
-| `cusip` | string |  | Compustat CUSIP (9 characters) |
-
 ### `us/equity/stock_daily`: US stock daily prices and returns
 
 Daily prices, returns, volume and shares outstanding for every US-listed security in CRSP, including delisted ones (no survivorship bias). Returns already include delisting returns on the delisting day, as in the CIZ format. Also carries the CRSP value-weighted market return and the S&P 500 return.
@@ -136,7 +103,7 @@ Daily prices, returns, volume and shares outstanding for every US-listed securit
 **Keys:** id `permno`, date `date`  
 **Aliases:** `stock_daily`, `us_stock_daily`
 
-**Coverage:** 2015-01-02 to 2025-12-31, 23,101,820 rows, 16,915 distinct `permno`, 852.0 MB in 11 file(s).
+**Coverage:** 2015-01-02 to 2025-12-31, 23,101,820 rows, 16,915 distinct `permno`, 852.5 MB in 11 file(s).
 
 
 **Notes**
@@ -144,12 +111,14 @@ Daily prices, returns, volume and shares outstanding for every US-listed securit
 - Use load(..., common_only=True) for the standard ordinary-common-stock universe.
 - Tickers are reused over time; filter by permno for stable identity.
 - mktcap and shrout are in thousands (of dollars and shares).
+- gvkey links each row to us/fundamentals/*; qrd.merge_fundamentals() joins on it point in time.
 
 | Column | Type | Unit | Description |
 |---|---|---|---|
 | `date` | date32 |  | Trading date |
 | `permno` | int32 |  | CRSP permanent security identifier |
 | `permco` | int32 |  | CRSP permanent company identifier |
+| `gvkey` | string |  | Company key of the fundamentals datasets, from the CRSP/Compustat link valid on this date (types LC/LU, primary links). Null when unlinked. |
 | `ticker` | string |  | Ticker symbol on this date |
 | `cusip` | string |  | 8-character CUSIP on this date |
 | `hdr_cusip` | string |  | Most recent (header) CUSIP |
@@ -274,18 +243,19 @@ Annual financial statement items for North American companies, active and inacti
 **Keys:** id `gvkey`, date `datadate`  
 **Aliases:** `annual`, `us_fundamentals_annual`
 
-**Coverage:** 2000-01-31 to 2026-10-31, 254,888 rows, 27,908 distinct `gvkey`, 29.5 MB in 1 file(s).
+**Coverage:** 2000-01-31 to 2026-10-31, 254,888 rows, 27,908 distinct `gvkey`, 29.6 MB in 1 file(s).
 
 
 **Notes**
 
 - datadate is the fiscal period end, not the date the numbers were public. Use load(..., point_in_time=True) for an available_date column.
-- Join to us/equity/stock_daily with qrd.merge_fundamentals().
+- Join to us/equity/stock_daily with qrd.merge_fundamentals(), which matches on gvkey.
 
 | Column | Type | Unit | Description |
 |---|---|---|---|
 | `gvkey` | string |  | Compustat company key (6 digits, zero padded) |
 | `datadate` | date32 |  | Fiscal period end date |
+| `permno` | int32 |  | Stock id (primary share class) linked to this company on datadate, from the CRSP/Compustat link table. Null when unlinked. |
 | `costat` | string |  | Company status: A=active, I=inactive |
 | `curcd` | string |  | ISO currency of reported values |
 | `datafmt` | string |  | Data format (STD = standardized) |
@@ -359,19 +329,20 @@ Quarterly financial statement items for North American companies, active and ina
 **Keys:** id `gvkey`, date `datadate`  
 **Aliases:** `quarterly`, `us_fundamentals_quarterly`
 
-**Coverage:** 2000-01-31 to 2026-11-30, 1,051,636 rows, 30,091 distinct `gvkey`, 96.5 MB in 1 file(s).
+**Coverage:** 2000-01-31 to 2026-11-30, 1,051,636 rows, 30,091 distinct `gvkey`, 96.6 MB in 1 file(s).
 
 
 **Notes**
 
 - Items ending in y (capxy, oancfy, ...) are fiscal year-to-date, not quarterly.
 - datadate is the fiscal period end, not the date the numbers were public. Use load(..., point_in_time=True) for an available_date column.
-- Join to us/equity/stock_daily with qrd.merge_fundamentals().
+- Join to us/equity/stock_daily with qrd.merge_fundamentals(), which matches on gvkey.
 
 | Column | Type | Unit | Description |
 |---|---|---|---|
 | `gvkey` | string |  | Compustat company key (6 digits, zero padded) |
 | `datadate` | date32 |  | Fiscal period end date |
+| `permno` | int32 |  | Stock id (primary share class) linked to this company on datadate, from the CRSP/Compustat link table. Null when unlinked. |
 | `costat` | string |  | Company status: A=active, I=inactive |
 | `curcdq` | string |  | ISO currency of reported values |
 | `datafmt` | string |  | Data format (STD = standardized) |

@@ -32,6 +32,7 @@ import pyarrow.dataset as ds
 import pyarrow.parquet as pq
 
 from .errors import QRDError
+from .links import Enricher, make_enricher
 from .manifest import Manifest, build_manifest
 from .registry import DatasetSpec, Registry, default_registry
 
@@ -128,11 +129,14 @@ def convert_column(
     return arr.cast(target)
 
 
-def standardize(raw: pa.Table, spec: DatasetSpec) -> pa.Table:
-    """Select, rename, type, filter and sort raw columns into the registry schema."""
+def standardize(raw: pa.Table, spec: DatasetSpec, enrich: Enricher | None = None) -> pa.Table:
+    """Select, rename, type, filter, enrich and sort raw columns into the registry schema."""
     opts = spec.build.options
     columns: dict[str, pa.ChunkedArray] = {}
     for col in spec.columns:
+        if col.derived:  # filled in by the enrichment step below
+            columns[col.name] = pa.chunked_array([pa.nulls(raw.num_rows, col.arrow_type)])
+            continue
         if col.source_name not in raw.column_names:
             raise QRDError(f"{spec.id}: source column {col.source_name!r} not found")
         arr = raw.column(col.source_name)
@@ -151,6 +155,8 @@ def standardize(raw: pa.Table, spec: DatasetSpec) -> pa.Table:
             table = table.filter(pc.is_in(ids, pa.array(spec.build.include_ids)))
         if spec.build.exclude_ids:
             table = table.filter(pc.invert(pc.is_in(ids, pa.array(spec.build.exclude_ids))))
+    if enrich is not None:
+        table = enrich(table).select(spec.column_names).cast(spec.schema)
     if spec.sort_by and table.num_rows:
         table = table.sort_by([(c, "ascending") for c in spec.sort_by])
     return table
@@ -205,10 +211,12 @@ def _bound(value: dt.date, typ: pa.DataType) -> pa.Scalar:
     return pa.scalar(value, type=typ)
 
 
-def iter_partitions(spec: DatasetSpec, source: ds.Dataset) -> Iterator[tuple[str, pa.Table]]:
+def iter_partitions(
+    spec: DatasetSpec, source: ds.Dataset, enrich: Enricher | None = None
+) -> Iterator[tuple[str, pa.Table]]:
     """Yield ``(relative path, standardized table)`` for each output file."""
     if spec.partitioning == "none":
-        yield "data.parquet", standardize(source.to_table(), spec)
+        yield "data.parquet", standardize(source.to_table(), spec, enrich)
         return
 
     assert spec.date_column is not None
@@ -223,13 +231,13 @@ def iter_partitions(spec: DatasetSpec, source: ds.Dataset) -> Iterator[tuple[str
             expr = (pc.field(raw_date) >= _bound(period.start, raw_type)) & (
                 pc.field(raw_date) < _bound(period.stop, raw_type)
             )
-            table = standardize(source.to_table(filter=expr), spec)
+            table = standardize(source.to_table(filter=expr), spec, enrich)
             if table.num_rows:
                 yield period.relpath(), table
         return
 
     # Small text sources: standardize once, then split in memory.
-    table = standardize(source.to_table(), spec)
+    table = standardize(source.to_table(), spec, enrich)
     dates = table.column(spec.date_column)
     years = pc.year(dates)
     months = pc.month(dates) if spec.partitioning == "year_month" else None
@@ -269,7 +277,9 @@ def build_dataset(spec: DatasetSpec, source_root: str | Path, out_root: str | Pa
         shutil.rmtree(tmp)
     written: list[Path] = []
     rows = 0
-    for rel, table in iter_partitions(spec, read_source(spec, source_root)):
+    for rel, table in iter_partitions(
+        spec, read_source(spec, source_root), make_enricher(spec, source_root)
+    ):
         write_table(table, tmp / rel, int(spec.build.options.get("row_group_size", ROW_GROUP_SIZE)))
         written.append(target / rel)
         rows += table.num_rows

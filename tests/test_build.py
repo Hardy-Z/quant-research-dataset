@@ -43,7 +43,7 @@ def test_partition_layout(data_dir: Path) -> None:
         "us/options/spx_option_prices/year=2019/month=12",
         "us/options/spx_option_prices/year=2020/month=01",
     }
-    assert (data_dir / "us/equity/stock_company_link/data.parquet").exists()
+    assert not (data_dir / "us/equity/stock_company_link").exists()  # links are baked in
 
 
 def test_manifest_contents(data_dir: Path) -> None:
@@ -57,11 +57,6 @@ def test_manifest_contents(data_dir: Path) -> None:
 
 
 def test_column_conversions(data_dir: Path) -> None:
-    ccm = _read(data_dir, "us/equity/stock_company_link")
-    assert ccm["gvkey"].tolist()[0] == "001000"  # leading zeros kept
-    assert ccm["linkenddt"].isna().sum() == 2  # 'E' -> null
-    assert "E" in ccm["tic"].tolist()  # the null token only applies to LINKENDDT
-
     opts = _read(data_dir, "us/options/spx_option_prices")
     assert sorted(opts["strike"]) == [3000.0, 3200.0, 3250.0]  # strike / 1000
 
@@ -122,3 +117,72 @@ def test_periods_between() -> None:
         2020,
         2021,
     ]
+
+
+def test_stock_rows_get_the_company_linked_on_their_date(data_dir: Path) -> None:
+    stocks = _read(data_dir, "us/equity/stock_daily")
+    stocks["date"] = pd.to_datetime(stocks["date"])
+    by = {
+        p: g.sort_values("date")["gvkey"].fillna("-").tolist() for p, g in stocks.groupby("permno")
+    }
+    assert by[10001] == ["001000"] * 4  # LC/P link, active ("E")
+    assert by[10002] == ["-", "002000", "002000", "002000"]  # LU/C link starts 2019-12-31
+    assert by[10003] == ["-"] * 4  # only an unusable LX link
+
+
+def test_fundamentals_get_the_primary_permno(data_dir: Path) -> None:
+    q = _read(data_dir, "us/fundamentals/quarterly").set_index(["gvkey", "datadate"])["permno"]
+    assert q.loc[("001000", dt.date(2019, 9, 30))] == 10001  # gvkey keeps its leading zeros
+    assert pd.isna(q.loc[("002000", dt.date(2019, 9, 30))])  # before the link starts
+    a = _read(data_dir, "us/fundamentals/annual").set_index("gvkey")["permno"]
+    assert a.to_dict() == {"001000": 10001, "002000": 10002}
+
+
+def test_null_tokens_apply_to_one_column_only() -> None:
+    import pyarrow as pa
+
+    from quant_research_dataset.build import standardize
+    from quant_research_dataset.registry import DatasetSpec
+
+    spec = DatasetSpec.from_dict(
+        {
+            "id": "xx/equity/toy",
+            "title": "Toy",
+            "market": "xx",
+            "asset_class": "equity",
+            "frequency": "static",
+            "source": "made up",
+            "license": "none",
+            "build": {
+                "source": "toy.csv",
+                "format": "csv",
+                "options": {"null_tokens": {"END": ["E"]}},
+            },
+            "columns": [
+                {"name": "tic", "type": "string"},
+                {"name": "end", "source": "END", "type": "date32"},
+            ],
+        }
+    )
+    raw = pa.table({"tic": ["E", "X"], "END": ["E", "2020-01-31"]})
+    out = standardize(raw, spec).to_pydict()
+    assert out == {"tic": ["E", "X"], "end": [None, dt.date(2020, 1, 31)]}
+
+
+def test_derived_columns_need_an_enrich_step() -> None:
+    from quant_research_dataset.errors import RegistryError
+    from quant_research_dataset.registry import DatasetSpec
+
+    data = {
+        "id": "xx/equity/toy",
+        "title": "Toy",
+        "market": "xx",
+        "asset_class": "equity",
+        "frequency": "static",
+        "source": "s",
+        "license": "l",
+        "build": {"source": "toy.csv"},
+        "columns": [{"name": "k", "type": "string", "derived": True}],
+    }
+    with pytest.raises(RegistryError, match="enrich"):
+        DatasetSpec.from_dict(data)

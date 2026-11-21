@@ -55,16 +55,11 @@ def test_available_date_without_rdq() -> None:
     assert available_date(df, "annual").iloc[0] == pd.Timestamp("2021-06-29")
 
 
-def test_link_table_filters(local: Path) -> None:
-    link = qrd.stock_company_links()
-    assert list(link.columns) == ["gvkey", "permno", "linkdt", "linkenddt"]
-    assert set(link["gvkey"]) == {"001000", "002000"}  # LX link dropped
-
-
 def test_merge_fundamentals_is_point_in_time(local: Path) -> None:
-    prices = qrd.load("us_stock_daily", columns=["date", "permno", "ret"])
-    fund = qrd.get_fundamentals("quarterly", columns=["gvkey", "datadate", "atq"])
+    prices = qrd.load("us_stock_daily", columns=["date", "permno", "gvkey", "ret"])
+    fund = qrd.get_fundamentals("quarterly", columns=["gvkey", "datadate", "permno", "atq"])
     merged = qrd.merge_fundamentals(prices, fund)
+    assert "permno_fund" not in merged.columns  # the stock's own permno is kept
     a = merged[merged.permno == 10001].set_index("date")
     # gvkey 001000 Q3 2019 became public 2019-10-30; Q4 only on 2020-03-30
     assert (a["atq"] == 100.0).all()
@@ -78,12 +73,14 @@ def test_merge_fundamentals_is_point_in_time(local: Path) -> None:
 
 
 def test_merge_fundamentals_requires_available_date(local: Path) -> None:
-    prices = qrd.load("us_stock_daily", columns=["date", "permno"])
+    prices = qrd.load("us_stock_daily", columns=["date", "permno", "gvkey"])
     fund = qrd.get_fundamentals(
         "quarterly", point_in_time=False, columns=["gvkey", "datadate", "atq"]
     )
     with pytest.raises(QRDError, match="available_date"):
         qrd.merge_fundamentals(prices, fund)
+    with pytest.raises(QRDError, match="gvkey"):
+        qrd.merge_fundamentals(prices.drop(columns="gvkey"), qrd.get_fundamentals("quarterly"))
 
 
 def test_option_derived_fields_and_market(local: Path) -> None:

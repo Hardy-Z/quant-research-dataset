@@ -84,7 +84,7 @@ def test_upload_patterns_select_exactly_the_release(data_dir: Path) -> None:
     selected = set(filter_repo_objects(on_disk, allow_patterns=plan.paths))
     expected = {f.path for e in plan.manifest.datasets.values() for f in e.files}
     assert selected == expected  # includes unpartitioned data.parquet files
-    assert "us/equity/stock_company_link/data.parquet" in selected
+    assert "us/rates/zero_curve/data.parquet" in selected
     assert not any(p.startswith("us/etf/") for p in selected)
 
 
@@ -100,7 +100,7 @@ def test_verify_detects_tampering(tmp_path: Path, data_dir: Path) -> None:
     copy = tmp_path / "copy"
     shutil.copytree(data_dir, copy)
     assert verify(copy) == []
-    target = next((copy / "us/equity/stock_company_link").glob("*.parquet"))
+    target = next((copy / "us/index/spx_daily").glob("*.parquet"))
     target.write_bytes(target.read_bytes() + b"x")
     (copy / "us/rates/zero_curve/data.parquet").unlink()
     problems = verify(copy)

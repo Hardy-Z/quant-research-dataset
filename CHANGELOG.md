@@ -10,10 +10,12 @@ First release.
 * Storage backends: Hugging Face Hub (gated or private repos) and local folders.
 * Build pipeline from raw vendor files to partitioned Parquet with a
   checksummed manifest; `qrd verify` and `qrd publish`.
-* 14 datasets, named by content (source kept as metadata): US stock daily,
-  stock-company links, US fundamentals quarterly/annual, SPX option prices and
+* 13 datasets, named by content (source kept as metadata): US stock daily,
+  US fundamentals quarterly/annual, SPX option prices and
   vol surface, SPX index, USD zero curve, US ETF bars (1d, 5m, 1m), China A/H
   daily bars, A/H pairs, CNY/HKD FX.
+* Stock-company links are applied at build time: stock rows carry `gvkey` and
+  fundamentals carry `permno` (primary share class).
 * US helpers: common-stock screen, point-in-time fundamentals,
   `merge_fundamentals`, option chains with spot, rates and moneyness.
 * China/HK helpers: A/H premium.

@@ -31,7 +31,7 @@ def _minimal(**over: object) -> dict:
 
 def test_builtin_registry_loads(registry: Registry) -> None:
     ids = [s.id for s in registry]
-    assert len(ids) == len(set(ids)) >= 14
+    assert len(ids) == len(set(ids)) >= 13
     assert {"us", "cn_hk"} <= {s.market for s in registry}
     for spec in registry:
         assert spec.path is not None and spec.path.parent.as_posix().endswith(

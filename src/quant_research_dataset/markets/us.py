@@ -1,4 +1,4 @@
-"""US market shortcuts: CRSP, Compustat, OptionMetrics and ETFs.
+"""US market shortcuts: stocks, fundamentals, SPX options, rates and ETFs.
 
 These wrap :func:`~quant_research_dataset.load` with the conventions most
 academic and industry research uses, so common tasks take one call.
@@ -16,7 +16,6 @@ from ..errors import QRDError
 from ..query import DateLike, load
 
 STOCK_DAILY = "us/equity/stock_daily"
-STOCK_COMPANY_LINK = "us/equity/stock_company_link"
 FUNDAMENTALS_ANNUAL = "us/fundamentals/annual"
 FUNDAMENTALS_QUARTERLY = "us/fundamentals/quarterly"
 SPX_OPTIONS = "us/options/spx_option_prices"
@@ -45,7 +44,7 @@ def get_stock_daily(
     tickers: str | Sequence[str] | None = None,
     common_only: bool = False,
 ) -> pd.DataFrame:
-    """CRSP daily stock data by PERMNO and/or ticker.
+    """Daily US stock data by PERMNO and/or ticker.
 
     >>> qrd.us.get_stock_daily(tickers="AAPL", start="2024-01-01",
     ...                       columns=["date", "permno", "ret"])   # doctest: +SKIP
@@ -64,7 +63,7 @@ def get_fundamentals(
     point_in_time: bool = True,
     lag_days: int | None = None,
 ) -> pd.DataFrame:
-    """Compustat fundamentals, with an ``available_date`` column by default.
+    """Company fundamentals, with an ``available_date`` column by default.
 
     ``start``/``end`` select on the fiscal period end (``datadate``).
     """
@@ -76,63 +75,41 @@ def get_fundamentals(
     )
 
 
-def stock_company_links(
-    linktypes: Sequence[str] = ("LC", "LU"),
-    linkprims: Sequence[str] = ("P", "C"),
-) -> pd.DataFrame:
-    """The CCM link table with the standard filters applied.
-
-    Returns ``gvkey, permno, linkdt, linkenddt``; ``linkenddt`` is null while a
-    link is still active.
-    """
-    link = _frame(
-        load(STOCK_COMPANY_LINK, filters={"linktype": list(linktypes), "linkprim": list(linkprims)})
-    )
-    return link[["gvkey", "permno", "linkdt", "linkenddt"]].reset_index(drop=True)
-
-
 def merge_fundamentals(
     prices: pd.DataFrame,
     fundamentals: pd.DataFrame,
-    link: pd.DataFrame | None = None,
     *,
     date_col: str = "date",
     available_col: str = "available_date",
     max_staleness: str | pd.Timedelta | None = "400D",
 ) -> pd.DataFrame:
-    """Attach the latest *known* fundamentals to each CRSP row (point in time).
+    """Attach the latest *known* fundamentals to each daily stock row (point in time).
 
-    Each ``(permno, date)`` row in ``prices`` is first mapped to a Compustat
-    ``gvkey`` through a CCM link that is valid on ``date``. It then gets the
-    most recent fundamentals row of that gvkey whose ``available_date`` is on
-    or before ``date``. Rows without fundamentals known within
-    ``max_staleness`` get nulls. Every input row is kept, in permno/date order.
+    Stock rows carry the company key ``gvkey`` of the link valid on their date
+    (added when the data is built), so the join needs no link table. Each row
+    gets the most recent fundamentals row of its company whose
+    ``available_date`` is on or before ``date``. Rows without a company, or
+    without fundamentals known within ``max_staleness``, get nulls. Every input
+    row is kept, in its original order.
 
-    ``fundamentals`` must include ``gvkey``, ``datadate`` and
-    ``available_date`` (load it with ``point_in_time=True``). Fundamentals
-    columns whose names clash with ``prices`` get a ``_fund`` suffix.
+    ``prices`` must include ``gvkey`` and ``date``; ``fundamentals`` must
+    include ``gvkey``, ``datadate`` and ``available_date`` (load it with
+    ``point_in_time=True``). Fundamentals columns whose names clash with
+    ``prices`` get a ``_fund`` suffix.
     """
     for col in ("gvkey", "datadate", available_col):
         if col not in fundamentals.columns:
             raise QRDError(f"fundamentals is missing column {col!r} (use point_in_time=True)")
-    if "permno" not in prices.columns or date_col not in prices.columns:
-        raise QRDError(f"prices needs 'permno' and {date_col!r} columns")
-    link = stock_company_links() if link is None else link
+    for col in ("gvkey", date_col):
+        if col not in prices.columns:
+            raise QRDError(f"prices is missing column {col!r}; include it in columns=[...]")
 
     left = prices.assign(**{date_col: _ns(prices[date_col])}).reset_index(drop=True)
     left["_row"] = np.arange(len(left))
 
-    # 1. permno -> gvkey, using the link valid on each price date
-    cand = left[["_row", "permno", date_col]].merge(
-        link.assign(permno=link["permno"].astype(left["permno"].dtype)), on="permno"
-    )
-    d = cand[date_col]
-    valid = (d >= _ns(cand["linkdt"])) & (cand["linkenddt"].isna() | (d <= _ns(cand["linkenddt"])))
-    gv = cand.loc[valid].sort_values(["_row", "gvkey"]).drop_duplicates("_row")[["_row", "gvkey"]]
-    left = left.merge(gv, on="_row", how="left")
-
-    # 2. latest fundamentals per gvkey known by each date
-    f = fundamentals.assign(**{available_col: _ns(fundamentals[available_col])})
+    # Latest fundamentals per company and availability date (keep the latest period).
+    f = fundamentals.drop(columns=[c for c in ("permno",) if c in fundamentals.columns])
+    f = f.assign(**{available_col: _ns(f[available_col])})
     f = f.sort_values([available_col, "datadate"]).drop_duplicates(
         ["gvkey", available_col], keep="last"
     )

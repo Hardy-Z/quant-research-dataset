@@ -26,7 +26,6 @@ from .markets.us import (
     get_stock_daily,
     get_vol_surface,
     merge_fundamentals,
-    stock_company_links,
     zero_rate,
 )
 from .query import describe, download, files_for, get_spec, list_datasets, load
@@ -63,7 +62,6 @@ __all__ = [
     "merge_fundamentals",
     "performance_summary",
     "quantile_portfolios",
-    "stock_company_links",
     "us",
     "zero_rate",
 ]

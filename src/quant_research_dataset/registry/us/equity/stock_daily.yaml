@@ -20,12 +20,16 @@ notes:
   - "Use load(..., common_only=True) for the standard ordinary-common-stock universe."
   - "Tickers are reused over time; filter by permno for stable identity."
   - "mktcap and shrout are in thousands (of dollars and shares)."
+  - "gvkey links each row to us/fundamentals/*; qrd.merge_fundamentals() joins on it point in time."
 build:
   source: WRDS_data/crsp/crsp_daily_stock_*.parquet
+  options:
+    enrich: {function: us_stock_gvkey, source: WRDS_data/crsp/ccm_link_table.csv}
 columns:
   - {name: date, source: DlyCalDt, type: date32, description: Trading date}
   - {name: permno, source: PERMNO, type: int32, description: CRSP permanent security identifier}
   - {name: permco, source: PERMCO, type: int32, description: CRSP permanent company identifier}
+  - {name: gvkey, type: string, derived: true, description: "Company key of the fundamentals datasets, from the CRSP/Compustat link valid on this date (types LC/LU, primary links). Null when unlinked."}
   - {name: ticker, source: Ticker, type: string, description: Ticker symbol on this date}
   - {name: cusip, source: CUSIP, type: string, description: 8-character CUSIP on this date}
   - {name: hdr_cusip, source: HdrCUSIP, type: string, description: Most recent (header) CUSIP}
