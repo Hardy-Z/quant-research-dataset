@@ -11,7 +11,7 @@ from .base import Adapter, register_adapter
 
 
 @register_adapter
-class OptionPricesAdapter(Adapter):
+class OptionsAdapter(Adapter):
     """Options:
 
     ``derived``
@@ -19,7 +19,7 @@ class OptionPricesAdapter(Adapter):
         ``dte`` (calendar days to expiry). On by default.
     """
 
-    name: ClassVar[str] = "us_option_prices"
+    name: ClassVar[str] = "us_options"
     options: ClassVar[dict[str, Any]] = {"derived": True}
 
     def extra_columns(self, spec: DatasetSpec, options: dict[str, Any]) -> list[str]:

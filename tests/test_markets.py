@@ -7,14 +7,14 @@ import pandas as pd
 import pytest
 
 import quant_research_dataset as qrd
-from quant_research_dataset.adapters.us_compustat import available_date
+from quant_research_dataset.adapters.us_fundamentals import available_date
 from quant_research_dataset.errors import QRDError
 from quant_research_dataset.markets.us import interpolate_zero_rate
 
 
 def test_common_only_screen(local: Path) -> None:
-    everything = qrd.load("crsp")
-    common = qrd.load("crsp", common_only=True)
+    everything = qrd.load("us_stock_daily")
+    common = qrd.load("us_stock_daily", common_only=True)
     assert set(everything["permno"]) == {10001, 10002, 10003}
     assert set(common["permno"]) == {10001, 10002}  # 10003 is an ETF
 
@@ -26,8 +26,8 @@ def test_get_prices_dispatch(local: Path) -> None:
         qrd.get_prices(market="mars")
 
 
-def test_get_crsp_daily_by_ticker(local: Path) -> None:
-    df = qrd.get_crsp_daily(tickers="AAA", columns=["date", "permno"])
+def test_get_stock_daily_by_ticker(local: Path) -> None:
+    df = qrd.get_stock_daily(tickers="AAA", columns=["date", "permno"])
     assert set(df["permno"]) == {10001}
 
 
@@ -56,13 +56,13 @@ def test_available_date_without_rdq() -> None:
 
 
 def test_link_table_filters(local: Path) -> None:
-    link = qrd.link_crsp_compustat()
+    link = qrd.stock_company_links()
     assert list(link.columns) == ["gvkey", "permno", "linkdt", "linkenddt"]
     assert set(link["gvkey"]) == {"001000", "002000"}  # LX link dropped
 
 
 def test_merge_fundamentals_is_point_in_time(local: Path) -> None:
-    prices = qrd.load("crsp", columns=["date", "permno", "ret"])
+    prices = qrd.load("us_stock_daily", columns=["date", "permno", "ret"])
     fund = qrd.get_fundamentals("quarterly", columns=["gvkey", "datadate", "atq"])
     merged = qrd.merge_fundamentals(prices, fund)
     a = merged[merged.permno == 10001].set_index("date")
@@ -78,7 +78,7 @@ def test_merge_fundamentals_is_point_in_time(local: Path) -> None:
 
 
 def test_merge_fundamentals_requires_available_date(local: Path) -> None:
-    prices = qrd.load("crsp", columns=["date", "permno"])
+    prices = qrd.load("us_stock_daily", columns=["date", "permno"])
     fund = qrd.get_fundamentals(
         "quarterly", point_in_time=False, columns=["gvkey", "datadate", "atq"]
     )
@@ -140,8 +140,8 @@ def test_ah_premium(local: Path) -> None:
 
 
 def test_duckdb_views(local: Path) -> None:
-    con = qrd.duckdb_connect(["crsp", "zero_curve"])
-    n = con.sql("select count(*) from crsp_daily").fetchall()[0][0]
+    con = qrd.duckdb_connect(["us_stock_daily", "usd_zero_curve"])
+    n = con.sql("select count(*) from us_stock_daily").fetchall()[0][0]
     assert n == 12
-    con = qrd.duckdb_connect({"px": "crsp"}, start="2020-01-01")
+    con = qrd.duckdb_connect({"px": "us_stock_daily"}, start="2020-01-01")
     assert con.sql("select count(*) from px").fetchall()[0][0] == 6

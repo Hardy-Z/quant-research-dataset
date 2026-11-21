@@ -2,7 +2,7 @@
 
 >>> import quant_research_dataset as qrd
 >>> qrd.list_datasets(market="us")                                     # doctest: +SKIP
->>> df = qrd.load("us/equity/crsp_daily", start="2024-01-01",
+>>> df = qrd.load("us/equity/stock_daily", start="2024-01-01",
 ...               columns=["date", "permno", "ret"], common_only=True)  # doctest: +SKIP
 
 Generic API
@@ -20,13 +20,13 @@ from .config import configure, get_settings
 from .errors import ConfigError, DatasetNotFoundError, ManifestError, QRDError, RegistryError
 from .markets import cn_hk, get_prices, us
 from .markets.us import (
-    get_crsp_daily,
     get_etf_bars,
     get_fundamentals,
     get_spx_options,
+    get_stock_daily,
     get_vol_surface,
-    link_crsp_compustat,
     merge_fundamentals,
+    stock_company_links,
     zero_rate,
 )
 from .query import describe, download, files_for, get_spec, list_datasets, load
@@ -49,21 +49,21 @@ __all__ = [
     "download",
     "duckdb_connect",
     "files_for",
-    "get_crsp_daily",
     "get_etf_bars",
     "get_fundamentals",
     "get_prices",
     "get_settings",
     "get_spec",
     "get_spx_options",
+    "get_stock_daily",
     "get_vol_surface",
-    "link_crsp_compustat",
     "list_datasets",
     "load",
     "load_registry",
     "merge_fundamentals",
     "performance_summary",
     "quantile_portfolios",
+    "stock_company_links",
     "us",
     "zero_rate",
 ]

@@ -274,8 +274,8 @@ def load(
     Parameters
     ----------
     dataset:
-        Dataset id such as ``"us/equity/crsp_daily"``, or an alias such as
-        ``"crsp_daily"``. See :func:`list_datasets`.
+        Dataset id such as ``"us/equity/stock_daily"``, or an alias such as
+        ``"us_stock_daily"``. See :func:`list_datasets`.
     ids:
         One value or a list of values of the dataset's id column (for
         example PERMNOs for CRSP, ``gvkey`` for Compustat, symbols for ETFs).

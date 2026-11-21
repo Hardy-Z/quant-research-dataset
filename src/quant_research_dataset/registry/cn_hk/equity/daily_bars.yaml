@@ -1,6 +1,6 @@
 id: cn_hk/equity/daily_bars
 title: China A-share and Hong Kong H-share daily bars
-aliases: [ah_daily]
+aliases: [ah_stock_daily]
 market: cn_hk
 asset_class: equity
 frequency: daily

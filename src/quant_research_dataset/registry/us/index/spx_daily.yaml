@@ -1,6 +1,6 @@
 id: us/index/spx_daily
 title: S&P 500 index daily prices
-aliases: [spx, secprd_spx]
+aliases: [spx_index_daily]
 market: us
 asset_class: index
 frequency: daily

@@ -33,7 +33,7 @@ def common_stock_expression() -> pc.Expression:
 
 
 @register_adapter
-class CRSPAdapter(Adapter):
+class StockAdapter(Adapter):
     """Options:
 
     ``common_only``
@@ -41,7 +41,7 @@ class CRSPAdapter(Adapter):
         the standard universe for cross-sectional equity research.
     """
 
-    name: ClassVar[str] = "us_crsp"
+    name: ClassVar[str] = "us_stocks"
     options: ClassVar[dict[str, Any]] = {"common_only": False}
 
     def row_filter(self, spec: DatasetSpec, options: dict[str, Any]) -> pc.Expression | None:

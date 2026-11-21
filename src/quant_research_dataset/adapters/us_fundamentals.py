@@ -34,7 +34,7 @@ def available_date(
 
 
 @register_adapter
-class CompustatAdapter(Adapter):
+class FundamentalsAdapter(Adapter):
     """Options:
 
     ``point_in_time``
@@ -44,7 +44,7 @@ class CompustatAdapter(Adapter):
         (quarterly) or 180 days (annual).
     """
 
-    name: ClassVar[str] = "us_compustat"
+    name: ClassVar[str] = "us_fundamentals"
     options: ClassVar[dict[str, Any]] = {"point_in_time": False, "lag_days": None}
 
     def extra_columns(self, spec: DatasetSpec, options: dict[str, Any]) -> list[str]:

@@ -1,6 +1,6 @@
 id: us/options/spx_vol_surface
 title: SPX standardized volatility surface
-aliases: [vol_surface, vsurfd_spx]
+aliases: []
 market: us
 asset_class: options
 frequency: daily

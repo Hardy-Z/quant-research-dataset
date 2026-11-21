@@ -14,14 +14,14 @@ tags:
 size_categories:
 - 10M<n<100M
 configs:
-- config_name: us__equity__ccm_link
-  data_files: us/equity/ccm_link/**/*.parquet
-- config_name: us__equity__crsp_daily
-  data_files: us/equity/crsp_daily/**/*.parquet
-- config_name: us__fundamentals__compustat_annual
-  data_files: us/fundamentals/compustat_annual/**/*.parquet
-- config_name: us__fundamentals__compustat_quarterly
-  data_files: us/fundamentals/compustat_quarterly/**/*.parquet
+- config_name: us__equity__stock_company_link
+  data_files: us/equity/stock_company_link/**/*.parquet
+- config_name: us__equity__stock_daily
+  data_files: us/equity/stock_daily/**/*.parquet
+- config_name: us__fundamentals__annual
+  data_files: us/fundamentals/annual/**/*.parquet
+- config_name: us__fundamentals__quarterly
+  data_files: us/fundamentals/quarterly/**/*.parquet
 - config_name: us__index__spx_daily
   data_files: us/index/spx_daily/**/*.parquet
 - config_name: us__options__spx_option_prices
@@ -52,7 +52,7 @@ import quant_research_dataset as qrd
 
 qrd.list_datasets()
 crsp = qrd.load(
-    "us/equity/crsp_daily",
+    "us/equity/stock_daily",
     start="2024-01-01",
     end="2024-12-31",
     columns=["date", "permno", "ret", "mktcap"],
@@ -64,10 +64,10 @@ crsp = qrd.load(
 
 | Dataset | Title | Start | End | Rows |
 |---|---|---|---|---|
-| `us/equity/ccm_link` | CRSP/Compustat merged link table | - | - | 39,770 |
-| `us/equity/crsp_daily` | CRSP daily stock file | 2015-01-02 | 2025-12-31 | 23,101,820 |
-| `us/fundamentals/compustat_annual` | Compustat annual fundamentals | 2000-01-31 | 2026-10-31 | 254,888 |
-| `us/fundamentals/compustat_quarterly` | Compustat quarterly fundamentals | 2000-01-31 | 2026-11-30 | 1,051,636 |
+| `us/equity/stock_company_link` | US stock-to-company identifier links | - | - | 39,770 |
+| `us/equity/stock_daily` | US stock daily prices and returns | 2015-01-02 | 2025-12-31 | 23,101,820 |
+| `us/fundamentals/annual` | US company annual fundamentals | 2000-01-31 | 2026-10-31 | 254,888 |
+| `us/fundamentals/quarterly` | US company quarterly fundamentals | 2000-01-31 | 2026-11-30 | 1,051,636 |
 | `us/index/spx_daily` | S&P 500 index daily prices | 2015-08-31 | 2025-08-29 | 2,515 |
 | `us/options/spx_option_prices` | SPX index option prices, implied volatility and greeks | 2015-08-31 | 2025-08-29 | 34,332,875 |
 | `us/options/spx_vol_surface` | SPX standardized volatility surface | 2015-08-31 | 2025-08-29 | 940,610 |
@@ -89,15 +89,15 @@ and approved by hand. Do not redistribute the files.
 
 ## Data dictionary
 
-### `us/equity/ccm_link`: CRSP/Compustat merged link table
+### `us/equity/stock_company_link`: US stock-to-company identifier links
 
-Maps Compustat companies (gvkey) to CRSP securities (permno) over time. Use it to join fundamentals to prices; qrd.link_crsp_compustat() applies the standard link filters for you.
+Maps Compustat companies (gvkey) to CRSP securities (permno) over time. Use it to join fundamentals to prices; qrd.stock_company_links() applies the standard link filters for you.
 
 **Source:** CRSP/Compustat Merged (CCM) database via WRDS  
 **License:** WRDS / CRSP subscription terms  
 **Frequency:** static  
 **Keys:** id `gvkey`, date `-`  
-**Aliases:** `ccm_link`, `ccm`, `ccmxpf_linktable`
+**Aliases:** `stock_company_link`, `us_stock_company_link`
 
 **Coverage:** 39,770 rows, 34,761 distinct `gvkey`, 1.4 MB in 1 file(s).
 
@@ -121,7 +121,7 @@ Maps Compustat companies (gvkey) to CRSP securities (permno) over time. Use it t
 | `tic` | string |  | Compustat ticker |
 | `cusip` | string |  | Compustat CUSIP (9 characters) |
 
-### `us/equity/crsp_daily`: CRSP daily stock file
+### `us/equity/stock_daily`: US stock daily prices and returns
 
 Daily prices, returns, volume and shares outstanding for every US-listed security in CRSP, including delisted ones (no survivorship bias). Returns already include delisting returns on the delisting day, as in the CIZ format. Also carries the CRSP value-weighted market return and the S&P 500 return.
 
@@ -129,7 +129,7 @@ Daily prices, returns, volume and shares outstanding for every US-listed securit
 **License:** WRDS / CRSP subscription terms  
 **Frequency:** daily  
 **Keys:** id `permno`, date `date`  
-**Aliases:** `crsp_daily`, `crsp`, `crsp_dsf`
+**Aliases:** `stock_daily`, `us_stock_daily`
 
 **Coverage:** 2015-01-02 to 2025-12-31, 23,101,820 rows, 16,915 distinct `permno`, 852.0 MB in 11 file(s).
 
@@ -178,7 +178,7 @@ Daily prices, returns, volume and shares outstanding for every US-listed securit
 | `vwretd` | float64 | decimal | CRSP value-weighted market return incl. dividends |
 | `sprtrn` | float64 | decimal | S&P 500 index return |
 
-### `us/fundamentals/compustat_annual`: Compustat annual fundamentals
+### `us/fundamentals/annual`: US company annual fundamentals
 
 Annual financial statement items for North American companies, active and inactive, in the standard industrial format (indfmt=INDL, datafmt=STD, consol=C). Values are as reported in the company's currency (curcd).
 
@@ -186,7 +186,7 @@ Annual financial statement items for North American companies, active and inacti
 **License:** WRDS / S&P Compustat subscription terms  
 **Frequency:** annual  
 **Keys:** id `gvkey`, date `datadate`  
-**Aliases:** `compustat_annual`, `funda`, `compustat_a`
+**Aliases:** `annual`, `us_fundamentals_annual`
 
 **Coverage:** 2000-01-31 to 2026-10-31, 254,888 rows, 27,908 distinct `gvkey`, 29.5 MB in 1 file(s).
 
@@ -194,7 +194,7 @@ Annual financial statement items for North American companies, active and inacti
 **Notes**
 
 - datadate is the fiscal period end, not the date the numbers were public. Use load(..., point_in_time=True) for an available_date column.
-- Join to CRSP with qrd.link_crsp_compustat() or qrd.merge_fundamentals().
+- Join to us/equity/stock_daily with qrd.merge_fundamentals().
 
 | Column | Type | Unit | Description |
 |---|---|---|---|
@@ -263,7 +263,7 @@ Annual financial statement items for North American companies, active and inacti
 | `emp` | float64 | thousand employees | Employees |
 | `prcc_f` | float64 | currency units per share | Closing price at fiscal year end |
 
-### `us/fundamentals/compustat_quarterly`: Compustat quarterly fundamentals
+### `us/fundamentals/quarterly`: US company quarterly fundamentals
 
 Quarterly financial statement items for North American companies, active and inactive, in the standard industrial format (indfmt=INDL, datafmt=STD, consol=C). Values are as reported in the company's currency (curcdq).
 
@@ -271,7 +271,7 @@ Quarterly financial statement items for North American companies, active and ina
 **License:** WRDS / S&P Compustat subscription terms  
 **Frequency:** quarterly  
 **Keys:** id `gvkey`, date `datadate`  
-**Aliases:** `compustat_quarterly`, `fundq`, `compustat_q`
+**Aliases:** `quarterly`, `us_fundamentals_quarterly`
 
 **Coverage:** 2000-01-31 to 2026-11-30, 1,051,636 rows, 30,091 distinct `gvkey`, 96.5 MB in 1 file(s).
 
@@ -280,7 +280,7 @@ Quarterly financial statement items for North American companies, active and ina
 
 - Items ending in y (capxy, oancfy, ...) are fiscal year-to-date, not quarterly.
 - datadate is the fiscal period end, not the date the numbers were public. Use load(..., point_in_time=True) for an available_date column.
-- Join to CRSP with qrd.link_crsp_compustat() or qrd.merge_fundamentals().
+- Join to us/equity/stock_daily with qrd.merge_fundamentals().
 
 | Column | Type | Unit | Description |
 |---|---|---|---|
@@ -359,7 +359,7 @@ Daily open, high, low and close of the S&P 500 index, aligned with the SPX optio
 **License:** WRDS / OptionMetrics subscription terms  
 **Frequency:** daily  
 **Keys:** id `-`, date `date`  
-**Aliases:** `spx_daily`, `spx`, `secprd_spx`
+**Aliases:** `spx_daily`, `spx_index_daily`
 
 **Coverage:** 2015-08-31 to 2025-08-29, 2,515 rows, 0.1 MB in 1 file(s).
 
@@ -383,7 +383,7 @@ End-of-day best bid and offer, volume, open interest, implied volatility and gre
 **License:** WRDS / OptionMetrics subscription terms  
 **Frequency:** daily  
 **Keys:** id `optionid`, date `date`  
-**Aliases:** `spx_option_prices`, `spx_options`, `opprcd_spx`
+**Aliases:** `spx_option_prices`, `spx_options`
 
 **Coverage:** 2015-08-31 to 2025-08-29, 34,332,875 rows, 837,308 distinct `optionid`, 1,150.7 MB in 121 file(s).
 
@@ -433,7 +433,7 @@ Daily interpolated implied volatility surface for SPX on a fixed grid of maturit
 **License:** WRDS / OptionMetrics subscription terms  
 **Frequency:** daily  
 **Keys:** id `-`, date `date`  
-**Aliases:** `spx_vol_surface`, `vol_surface`, `vsurfd_spx`
+**Aliases:** `spx_vol_surface`
 
 **Coverage:** 2015-08-31 to 2025-08-29, 940,610 rows, 19.1 MB in 11 file(s).
 
@@ -462,7 +462,7 @@ Daily continuously compounded zero-coupon interest rates at a set of maturities,
 **License:** WRDS / OptionMetrics subscription terms  
 **Frequency:** daily  
 **Keys:** id `-`, date `date`  
-**Aliases:** `zero_curve`, `zero_curve`, `zerocd`
+**Aliases:** `zero_curve`, `usd_zero_curve`
 
 **Coverage:** 2015-08-31 to 2025-08-29, 81,588 rows, 0.6 MB in 1 file(s).
 

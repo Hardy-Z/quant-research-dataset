@@ -1,6 +1,6 @@
 id: cn_hk/equity/ah_pairs
 title: A/H dual-listed share pairs
-aliases: [ah_pairs]
+aliases: []
 market: cn_hk
 asset_class: equity
 frequency: static

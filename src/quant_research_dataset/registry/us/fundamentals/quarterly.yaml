@@ -1,6 +1,6 @@
-id: us/fundamentals/compustat_quarterly
-title: Compustat quarterly fundamentals
-aliases: [fundq, compustat_q]
+id: us/fundamentals/quarterly
+title: US company quarterly fundamentals
+aliases: [us_fundamentals_quarterly]
 market: us
 asset_class: fundamentals
 frequency: quarterly
@@ -14,11 +14,11 @@ id_column: gvkey
 date_column: datadate
 partitioning: none
 sort_by: [gvkey, datadate]
-adapter: us_compustat
+adapter: us_fundamentals
 notes:
   - "Items ending in y (capxy, oancfy, ...) are fiscal year-to-date, not quarterly."
   - "datadate is the fiscal period end, not the date the numbers were public. Use load(..., point_in_time=True) for an available_date column."
-  - "Join to CRSP with qrd.link_crsp_compustat() or qrd.merge_fundamentals()."
+  - "Join to us/equity/stock_daily with qrd.merge_fundamentals()."
 build:
   source: WRDS_data/compustat/compustat_fundq_quarterly_*.parquet
 columns:

@@ -42,11 +42,18 @@ def test_builtin_registry_loads(registry: Registry) -> None:
         assert spec.description and all(c.description for c in spec.columns)
 
 
+def test_names_describe_content_not_vendor(registry: Registry) -> None:
+    vendors = ("crsp", "compustat", "ccm", "optionmetrics", "wrds", "alpaca", "yahoo")
+    for spec in registry:
+        for name in (spec.id, *spec.aliases):
+            assert not any(v in name.lower() for v in vendors), name
+
+
 def test_alias_resolution(registry: Registry) -> None:
-    assert registry.resolve("crsp") == "us/equity/crsp_daily"
-    assert registry.resolve("crsp_daily") == "us/equity/crsp_daily"
-    assert registry.resolve("us/equity/crsp_daily") == "us/equity/crsp_daily"
-    assert "fundq" in registry and "nope" not in registry
+    assert registry.resolve("us_stock_daily") == "us/equity/stock_daily"
+    assert registry.resolve("us_stock_daily") == "us/equity/stock_daily"
+    assert registry.resolve("us/equity/stock_daily") == "us/equity/stock_daily"
+    assert "us_fundamentals_quarterly" in registry and "nope" not in registry
 
 
 def test_ambiguous_name_is_rejected(registry: Registry) -> None:

@@ -111,7 +111,7 @@ class DatasetSpec:
     # ------------------------------------------------------------------ helpers
     @property
     def name(self) -> str:
-        """Last component of the id, e.g. ``crsp_daily``."""
+        """Last component of the id, e.g. ``us_stock_daily``."""
         return self.id.rsplit("/", 1)[-1]
 
     @property

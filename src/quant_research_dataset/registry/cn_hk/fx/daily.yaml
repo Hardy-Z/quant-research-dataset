@@ -1,6 +1,6 @@
 id: cn_hk/fx/daily
 title: CNY/HKD and USD/HKD daily exchange rates
-aliases: [cnhk_fx]
+aliases: [cny_hkd_fx_daily]
 market: cn_hk
 asset_class: fx
 frequency: daily

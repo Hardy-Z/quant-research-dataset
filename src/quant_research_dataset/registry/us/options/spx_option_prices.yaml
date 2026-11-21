@@ -1,6 +1,6 @@
 id: us/options/spx_option_prices
 title: SPX index option prices, implied volatility and greeks
-aliases: [spx_options, opprcd_spx]
+aliases: [spx_options]
 market: us
 asset_class: options
 frequency: daily
@@ -14,7 +14,7 @@ id_column: optionid
 date_column: date
 partitioning: year_month
 sort_by: [date, exdate, cp_flag, strike]
-adapter: us_option_prices
+adapter: us_options
 notes:
   - "strike is in index points (OptionMetrics stores strike x 1000; it is divided here)."
   - "load() adds mid, spread and dte (calendar days to expiry) by default; pass derived=False to skip."

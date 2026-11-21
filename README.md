@@ -14,8 +14,8 @@ returns clean, documented `pandas` DataFrames.
 import quant_research_dataset as qrd
 
 # Every US common stock's daily return in 2024 (one ~90 MB partition, cached after the first call)
-crsp = qrd.load(
-    "us/equity/crsp_daily",
+stocks = qrd.load(
+    "us/equity/stock_daily",
     start="2024-01-01",
     end="2024-12-31",
     columns=["date", "permno", "ret", "mktcap"],
@@ -24,7 +24,7 @@ crsp = qrd.load(
 
 # Point-in-time fundamentals, joined without look-ahead bias
 fund = qrd.get_fundamentals("quarterly", columns=["gvkey", "datadate", "atq", "ceqq"])
-panel = qrd.merge_fundamentals(crsp, fund)
+panel = qrd.merge_fundamentals(stocks, fund)
 
 # SPX options for a day, with mid price, days to expiry, spot and a matched zero rate
 chain = qrd.get_spx_options("2024-03-15", with_market=True)
@@ -42,29 +42,30 @@ cleaning. This library does it once, in tested code, behind a small API:
 | Multi-GB files, slow to load | Year/month partitions + a manifest, so `load(start=..., end=...)` fetches only what it needs |
 | Different column names per vendor | Every dataset has a typed schema, snake_case names, units and descriptions in one YAML file |
 | Look-ahead bias in fundamentals | `point_in_time=True` adds `available_date` (report date, or a conservative lag) |
-| CRSP ↔ Compustat joins | `link_crsp_compustat()` and `merge_fundamentals()` apply the standard CCM link rules |
+| Joining stocks to company fundamentals | `stock_company_links()` and `merge_fundamentals()` apply the standard CRSP/Compustat link rules |
 | "Common stocks only" screens | `common_only=True` applies the CIZ-flag equivalent of `shrcd in (10, 11)` |
 | Option chains need context | `mid`, `spread`, `dte`, `spot`, `moneyness` and an interpolated zero rate |
 | US-only tools | Market-neutral design: `market/asset_class/dataset` ids, per-market adapters |
 
 ## Datasets
 
-| Id | Content | Coverage |
-|---|---|---|
-| `us/equity/crsp_daily` | CRSP daily stock file (CIZ), all US securities incl. delisted | 2015–2025, 23.1M rows |
-| `us/equity/ccm_link` | CRSP/Compustat merged link table | full history |
-| `us/fundamentals/compustat_quarterly` | Compustat `fundq` (60+ items) | 2000–2026, 1.05M rows |
-| `us/fundamentals/compustat_annual` | Compustat `funda` (60+ items) | 2000–2026, 255K rows |
-| `us/options/spx_option_prices` | OptionMetrics SPX quotes, IV and greeks | 2015–2025, 34.3M rows |
-| `us/options/spx_vol_surface` | OptionMetrics standardized SPX vol surface | 2015–2025 |
-| `us/index/spx_daily` | S&P 500 index OHLC | 2015–2025 |
-| `us/rates/zero_curve` | USD zero-coupon curve | 2015–2025 |
-| `us/etf/daily_bars`, `bars_5min`, `bars_1min` | SPY, QQQ, IWM, TLT, IEF, GLD bars | 2016–2026 |
-| `cn_hk/equity/daily_bars`, `ah_pairs` | China A/H dual-listed shares | 2014–2026 |
-| `cn_hk/fx/daily` | CNY/HKD, USD/HKD | 2014–2026 |
+| Id | Content | Source | Coverage |
+|---|---|---|---|
+| `us/equity/stock_daily` | Daily prices, returns, volume and market cap of all US-listed stocks, incl. delisted | CRSP | 2015–2025, 23.1M rows |
+| `us/equity/stock_company_link` | Links stock ids (PERMNO) to company ids (gvkey) over time | CRSP/Compustat (CCM) | full history |
+| `us/fundamentals/quarterly` | Quarterly financial statements, 60+ items | Compustat | 2000–2026, 1.05M rows |
+| `us/fundamentals/annual` | Annual financial statements, 60+ items | Compustat | 2000–2026, 255K rows |
+| `us/options/spx_option_prices` | S&P 500 index option quotes, implied vol and greeks | OptionMetrics | 2015–2025, 34.3M rows |
+| `us/options/spx_vol_surface` | Standardized S&P 500 implied volatility surface | OptionMetrics | 2015–2025 |
+| `us/index/spx_daily` | S&P 500 index daily OHLC | OptionMetrics | 2015–2025 |
+| `us/rates/zero_curve` | USD zero-coupon yield curve | OptionMetrics | 2015–2025 |
+| `us/etf/daily_bars`, `bars_5min`, `bars_1min` | SPY, QQQ, IWM, TLT, IEF, GLD bars | Alpaca (local only) | 2016–2026 |
+| `cn_hk/equity/daily_bars`, `ah_pairs` | China A/H dual-listed shares | Yahoo Finance (local only) | 2014–2026 |
+| `cn_hk/fx/daily` | CNY/HKD, USD/HKD exchange rates | Yahoo Finance (local only) | 2014–2026 |
 
-Full column-level documentation: [docs/datasets.md](docs/datasets.md), or
-`qrd.describe("crsp_daily")` in Python.
+Datasets marked *local only* are not on the Hub because of their vendor terms; build them
+from your own copy with `qrd build`. Full column-level documentation: [docs/datasets.md](docs/datasets.md), or
+`qrd.describe("us_stock_daily")` in Python.
 
 ## Install and get access
 
@@ -108,7 +109,7 @@ qrd.load(dataset, ids=None, start=None, end=None, columns=None, filters=None, **
 ```python
 qrd.get_prices(market="us", start="2024-01-01", common_only=True)  # CRSP
 qrd.get_prices(["600036.SS", "3968.HK"], market="cn_hk")  # A/H shares
-qrd.us.get_crsp_daily(tickers="NVDA", start="2023-01-01")
+qrd.us.get_stock_daily(tickers="NVDA", start="2023-01-01")
 qrd.get_vol_surface("2020-01-01", "2020-12-31", days=30, delta=50, cp_flag="C")
 qrd.get_etf_bars("SPY", start="2024-01-02", end="2024-01-02", freq="1min")
 qrd.cn_hk.ah_premium(start="2024-01-01")  # A/H premium per pair
@@ -118,8 +119,8 @@ qrd.zero_rate(["2024-03-15"], [45])  # 45-day zero rate
 ### SQL
 
 ```python
-con = qrd.duckdb_connect(["crsp_daily"], start="2024-01-01")
-con.sql("select permno, exp(sum(ln(1 + ret))) - 1 as ret_2024 from crsp_daily group by 1").df()
+con = qrd.duckdb_connect(["us_stock_daily"], start="2024-01-01")
+con.sql("select permno, exp(sum(ln(1 + ret))) - 1 as ret_2024 from us_stock_daily group by 1").df()
 ```
 
 ### Research helpers
@@ -129,7 +130,7 @@ port = qrd.quantile_portfolios(panel, signal="mom_12_1", ret="fwd_ret", n=10, we
 qrd.performance_summary(port["long_short"], periods_per_year=12)
 ```
 
-## Example: 12-1 momentum on CRSP
+## Example: 12-1 momentum on US stocks
 
 [examples/momentum.ipynb](examples/momentum.ipynb) runs a classic momentum
 study end to end in a few cells: common stocks above the NYSE 20th size

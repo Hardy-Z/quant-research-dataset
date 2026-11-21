@@ -29,11 +29,11 @@ def test_every_dataset_is_built(data_dir: Path, registry: Registry) -> None:
 def test_partition_layout(data_dir: Path) -> None:
     crsp = sorted(
         p.relative_to(data_dir).as_posix()
-        for p in (data_dir / "us/equity/crsp_daily").rglob("*.parquet")
+        for p in (data_dir / "us/equity/stock_daily").rglob("*.parquet")
     )
     assert crsp == [
-        "us/equity/crsp_daily/year=2019/part-0.parquet",
-        "us/equity/crsp_daily/year=2020/part-0.parquet",
+        "us/equity/stock_daily/year=2019/part-0.parquet",
+        "us/equity/stock_daily/year=2020/part-0.parquet",
     ]
     opts = {
         p.parent.relative_to(data_dir).as_posix()
@@ -43,13 +43,13 @@ def test_partition_layout(data_dir: Path) -> None:
         "us/options/spx_option_prices/year=2019/month=12",
         "us/options/spx_option_prices/year=2020/month=01",
     }
-    assert (data_dir / "us/equity/ccm_link/data.parquet").exists()
+    assert (data_dir / "us/equity/stock_company_link/data.parquet").exists()
 
 
 def test_manifest_contents(data_dir: Path) -> None:
     m = Manifest.load(data_dir)
     assert m.version == "test"
-    crsp = m.entry("us/equity/crsp_daily")
+    crsp = m.entry("us/equity/stock_daily")
     assert crsp.rows == 12 and crsp.ids == 3
     assert (crsp.start, crsp.end) == ("2019-12-30", "2020-01-03")
     for f in crsp.files:
@@ -57,7 +57,7 @@ def test_manifest_contents(data_dir: Path) -> None:
 
 
 def test_column_conversions(data_dir: Path) -> None:
-    ccm = _read(data_dir, "us/equity/ccm_link")
+    ccm = _read(data_dir, "us/equity/stock_company_link")
     assert ccm["gvkey"].tolist()[0] == "001000"  # leading zeros kept
     assert ccm["linkenddt"].isna().sum() == 2  # 'E' -> null
     assert "E" in ccm["tic"].tolist()  # the null token only applies to LINKENDDT
@@ -88,7 +88,7 @@ def test_include_exclude_ids(data_dir: Path) -> None:
 
 
 def test_sorted_output(data_dir: Path) -> None:
-    crsp = _read(data_dir, "us/equity/crsp_daily")
+    crsp = _read(data_dir, "us/equity/stock_daily")
     crsp["date"] = pd.to_datetime(crsp["date"])
     for _, part in crsp.groupby(crsp["date"].dt.year):
         assert part[["permno", "date"]].equals(
@@ -98,19 +98,19 @@ def test_sorted_output(data_dir: Path) -> None:
 
 def test_source_files_untouched(tmp_path: Path, source_root: Path, registry: Registry) -> None:
     before = {p: p.stat().st_mtime_ns for p in source_root.rglob("*") if p.is_file()}
-    build_dataset(registry.get("crsp"), source_root, tmp_path / "out")
+    build_dataset(registry.get("us_stock_daily"), source_root, tmp_path / "out")
     after = {p: p.stat().st_mtime_ns for p in source_root.rglob("*") if p.is_file()}
     assert before == after
 
 
 def test_output_inside_source_rejected(source_root: Path, registry: Registry) -> None:
     with pytest.raises(QRDError, match="contain"):
-        build_dataset(registry.get("crsp"), source_root, source_root / "prepared")
+        build_dataset(registry.get("us_stock_daily"), source_root, source_root / "prepared")
 
 
 def test_missing_source(tmp_path: Path, registry: Registry) -> None:
     with pytest.raises(QRDError, match="no source files"):
-        build_dataset(registry.get("crsp"), tmp_path / "empty", tmp_path / "out")
+        build_dataset(registry.get("us_stock_daily"), tmp_path / "empty", tmp_path / "out")
 
 
 def test_periods_between() -> None:

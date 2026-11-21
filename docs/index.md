@@ -8,7 +8,7 @@ import quant_research_dataset as qrd
 
 qrd.list_datasets()
 df = qrd.load(
-    "us/equity/crsp_daily", start="2024-01-01", columns=["date", "permno", "ret"], common_only=True
+    "us/equity/stock_daily", start="2024-01-01", columns=["date", "permno", "ret"], common_only=True
 )
 ```
 
@@ -31,7 +31,7 @@ df = qrd.load(
 
 ```text
 qrd list [--market us] [--asset options]
-qrd describe crsp_daily
-qrd download crsp_daily --start 2024-01-01
+qrd describe us_stock_daily
+qrd download us_stock_daily --start 2024-01-01
 qrd build | docs | verify | publish      # maintainers
 ```

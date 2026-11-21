@@ -1,6 +1,6 @@
 id: us/rates/zero_curve
 title: USD zero-coupon yield curve
-aliases: [zero_curve, zerocd]
+aliases: [usd_zero_curve]
 market: us
 asset_class: rates
 frequency: daily

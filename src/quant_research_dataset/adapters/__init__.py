@@ -6,7 +6,7 @@ at load time. Datasets pick an adapter with the ``adapter:`` key in their
 registry YAML; datasets without one use the base :class:`Adapter`.
 """
 
-from . import us_compustat, us_crsp, us_optionmetrics  # noqa: F401  (registers adapters)
+from . import us_fundamentals, us_options, us_stocks  # noqa: F401  (registers adapters)
 from .base import Adapter, get_adapter, register_adapter
 
 __all__ = ["Adapter", "get_adapter", "register_adapter"]

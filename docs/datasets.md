@@ -7,13 +7,13 @@ Generated from the dataset registry by `qrd docs`. Do not edit by hand.
 | [`cn_hk/equity/ah_pairs`](#cn_hkequityah_pairs) | A/H dual-listed share pairs | static | Eastmoney A/H comparison board |
 | [`cn_hk/equity/daily_bars`](#cn_hkequitydaily_bars) | China A-share and Hong Kong H-share daily bars | daily | Yahoo Finance (via yfinance) |
 | [`cn_hk/fx/daily`](#cn_hkfxdaily) | CNY/HKD and USD/HKD daily exchange rates | daily | Yahoo Finance (via yfinance) |
-| [`us/equity/ccm_link`](#usequityccm_link) | CRSP/Compustat merged link table | static | CRSP/Compustat Merged (CCM) database via WRDS |
-| [`us/equity/crsp_daily`](#usequitycrsp_daily) | CRSP daily stock file | daily | CRSP US Stock Database, CIZ (v2) format, via WRDS |
+| [`us/equity/stock_company_link`](#usequitystock_company_link) | US stock-to-company identifier links | static | CRSP/Compustat Merged (CCM) database via WRDS |
+| [`us/equity/stock_daily`](#usequitystock_daily) | US stock daily prices and returns | daily | CRSP US Stock Database, CIZ (v2) format, via WRDS |
 | [`us/etf/bars_1min`](#usetfbars_1min) | US ETF 1-minute bars | intraday | Alpaca Markets historical stock bars (SIP feed) |
 | [`us/etf/bars_5min`](#usetfbars_5min) | US ETF 5-minute bars | intraday | Alpaca Markets historical stock bars (SIP feed) |
 | [`us/etf/daily_bars`](#usetfdaily_bars) | US ETF daily bars | daily | Alpaca Markets historical stock bars (SIP feed) |
-| [`us/fundamentals/compustat_annual`](#usfundamentalscompustat_annual) | Compustat annual fundamentals | annual | S&P Compustat North America `comp.funda` via WRDS |
-| [`us/fundamentals/compustat_quarterly`](#usfundamentalscompustat_quarterly) | Compustat quarterly fundamentals | quarterly | S&P Compustat North America `comp.fundq` via WRDS |
+| [`us/fundamentals/annual`](#usfundamentalsannual) | US company annual fundamentals | annual | S&P Compustat North America `comp.funda` via WRDS |
+| [`us/fundamentals/quarterly`](#usfundamentalsquarterly) | US company quarterly fundamentals | quarterly | S&P Compustat North America `comp.fundq` via WRDS |
 | [`us/index/spx_daily`](#usindexspx_daily) | S&P 500 index daily prices | daily | OptionMetrics IvyDB US `secprd` (Security Prices), SPX, via WRDS |
 | [`us/options/spx_option_prices`](#usoptionsspx_option_prices) | SPX index option prices, implied volatility and greeks | daily | OptionMetrics IvyDB US `opprcd` (Option Prices), SPX (secid 108105), via WRDS |
 | [`us/options/spx_vol_surface`](#usoptionsspx_vol_surface) | SPX standardized volatility surface | daily | OptionMetrics IvyDB US `vsurfd` (Volatility Surface), SPX, via WRDS |
@@ -29,7 +29,7 @@ Companies with both an A-share line (Shanghai or Shenzhen, in CNY) and an H-shar
 **License:** Public listing information  
 **Frequency:** static  
 **Keys:** id `a_symbol`, date `-`  
-**Aliases:** `ah_pairs`, `ah_pairs`
+**Aliases:** `ah_pairs`
 
 **Coverage:** 100 rows, 100 distinct `a_symbol`, 0.0 MB in 1 file(s).
 
@@ -48,7 +48,7 @@ Daily prices for the A-share and H-share lines of about 100 companies dual liste
 **License:** Yahoo Finance terms of service  
 **Frequency:** daily  
 **Keys:** id `symbol`, date `date`  
-**Aliases:** `daily_bars`, `ah_daily`
+**Aliases:** `daily_bars`, `ah_stock_daily`
 
 **Coverage:** 2014-01-02 to 2026-11-20, 606,826 rows, 239 distinct `symbol`, 8.6 MB in 1 file(s).
 
@@ -76,7 +76,7 @@ Daily exchange rates used to put A shares (CNY) and H shares (HKD) on the same c
 **License:** Yahoo Finance terms of service  
 **Frequency:** daily  
 **Keys:** id `symbol`, date `date`  
-**Aliases:** `daily`, `cnhk_fx`
+**Aliases:** `daily`, `cny_hkd_fx_daily`
 
 **Coverage:** 2014-01-01 to 2026-11-20, 6,711 rows, 2 distinct `symbol`, 0.1 MB in 1 file(s).
 
@@ -94,15 +94,15 @@ Daily exchange rates used to put A shares (CNY) and H shares (HKD) on the same c
 
 ## Market: `us`
 
-### `us/equity/ccm_link`: CRSP/Compustat merged link table
+### `us/equity/stock_company_link`: US stock-to-company identifier links
 
-Maps Compustat companies (gvkey) to CRSP securities (permno) over time. Use it to join fundamentals to prices; qrd.link_crsp_compustat() applies the standard link filters for you.
+Maps Compustat companies (gvkey) to CRSP securities (permno) over time. Use it to join fundamentals to prices; qrd.stock_company_links() applies the standard link filters for you.
 
 **Source:** CRSP/Compustat Merged (CCM) database via WRDS  
 **License:** WRDS / CRSP subscription terms  
 **Frequency:** static  
 **Keys:** id `gvkey`, date `-`  
-**Aliases:** `ccm_link`, `ccm`, `ccmxpf_linktable`
+**Aliases:** `stock_company_link`, `us_stock_company_link`
 
 **Coverage:** 39,770 rows, 34,761 distinct `gvkey`, 1.4 MB in 1 file(s).
 
@@ -126,7 +126,7 @@ Maps Compustat companies (gvkey) to CRSP securities (permno) over time. Use it t
 | `tic` | string |  | Compustat ticker |
 | `cusip` | string |  | Compustat CUSIP (9 characters) |
 
-### `us/equity/crsp_daily`: CRSP daily stock file
+### `us/equity/stock_daily`: US stock daily prices and returns
 
 Daily prices, returns, volume and shares outstanding for every US-listed security in CRSP, including delisted ones (no survivorship bias). Returns already include delisting returns on the delisting day, as in the CIZ format. Also carries the CRSP value-weighted market return and the S&P 500 return.
 
@@ -134,7 +134,7 @@ Daily prices, returns, volume and shares outstanding for every US-listed securit
 **License:** WRDS / CRSP subscription terms  
 **Frequency:** daily  
 **Keys:** id `permno`, date `date`  
-**Aliases:** `crsp_daily`, `crsp`, `crsp_dsf`
+**Aliases:** `stock_daily`, `us_stock_daily`
 
 **Coverage:** 2015-01-02 to 2025-12-31, 23,101,820 rows, 16,915 distinct `permno`, 852.0 MB in 11 file(s).
 
@@ -191,7 +191,7 @@ Daily prices, returns, volume and shares outstanding for every US-listed securit
 **License:** Alpaca market data terms  
 **Frequency:** intraday  
 **Keys:** id `symbol`, date `timestamp`  
-**Aliases:** `bars_1min`, `etf_1min`
+**Aliases:** `bars_1min`, `us_etf_1min`
 
 **Coverage:** 2016-01-04 to 2026-09-25, 3,150,459 rows, 3 distinct `symbol`, 24.6 MB in 11 file(s).
 
@@ -217,7 +217,7 @@ Daily prices, returns, volume and shares outstanding for every US-listed securit
 **License:** Alpaca market data terms  
 **Frequency:** intraday  
 **Keys:** id `symbol`, date `timestamp`  
-**Aliases:** `bars_5min`, `etf_5min`
+**Aliases:** `bars_5min`, `us_etf_5min`
 
 **Coverage:** 2016-01-04 to 2026-09-25, 210,387 rows, 1 distinct `symbol`, 4.3 MB in 11 file(s).
 
@@ -244,7 +244,7 @@ Daily bars for liquid US ETFs (SPY, QQQ, IWM, TLT, IEF, GLD), adjusted for split
 **License:** Alpaca market data terms  
 **Frequency:** daily  
 **Keys:** id `symbol`, date `date`  
-**Aliases:** `daily_bars`, `etf_daily`
+**Aliases:** `daily_bars`, `us_etf_daily`
 
 **Coverage:** 2016-01-04 to 2026-09-25, 16,188 rows, 6 distinct `symbol`, 0.2 MB in 1 file(s).
 
@@ -264,7 +264,7 @@ Daily bars for liquid US ETFs (SPY, QQQ, IWM, TLT, IEF, GLD), adjusted for split
 | `close` | float64 | USD | Close (adjusted) |
 | `volume` | float64 | shares | Volume (adjusted) |
 
-### `us/fundamentals/compustat_annual`: Compustat annual fundamentals
+### `us/fundamentals/annual`: US company annual fundamentals
 
 Annual financial statement items for North American companies, active and inactive, in the standard industrial format (indfmt=INDL, datafmt=STD, consol=C). Values are as reported in the company's currency (curcd).
 
@@ -272,7 +272,7 @@ Annual financial statement items for North American companies, active and inacti
 **License:** WRDS / S&P Compustat subscription terms  
 **Frequency:** annual  
 **Keys:** id `gvkey`, date `datadate`  
-**Aliases:** `compustat_annual`, `funda`, `compustat_a`
+**Aliases:** `annual`, `us_fundamentals_annual`
 
 **Coverage:** 2000-01-31 to 2026-10-31, 254,888 rows, 27,908 distinct `gvkey`, 29.5 MB in 1 file(s).
 
@@ -280,7 +280,7 @@ Annual financial statement items for North American companies, active and inacti
 **Notes**
 
 - datadate is the fiscal period end, not the date the numbers were public. Use load(..., point_in_time=True) for an available_date column.
-- Join to CRSP with qrd.link_crsp_compustat() or qrd.merge_fundamentals().
+- Join to us/equity/stock_daily with qrd.merge_fundamentals().
 
 | Column | Type | Unit | Description |
 |---|---|---|---|
@@ -349,7 +349,7 @@ Annual financial statement items for North American companies, active and inacti
 | `emp` | float64 | thousand employees | Employees |
 | `prcc_f` | float64 | currency units per share | Closing price at fiscal year end |
 
-### `us/fundamentals/compustat_quarterly`: Compustat quarterly fundamentals
+### `us/fundamentals/quarterly`: US company quarterly fundamentals
 
 Quarterly financial statement items for North American companies, active and inactive, in the standard industrial format (indfmt=INDL, datafmt=STD, consol=C). Values are as reported in the company's currency (curcdq).
 
@@ -357,7 +357,7 @@ Quarterly financial statement items for North American companies, active and ina
 **License:** WRDS / S&P Compustat subscription terms  
 **Frequency:** quarterly  
 **Keys:** id `gvkey`, date `datadate`  
-**Aliases:** `compustat_quarterly`, `fundq`, `compustat_q`
+**Aliases:** `quarterly`, `us_fundamentals_quarterly`
 
 **Coverage:** 2000-01-31 to 2026-11-30, 1,051,636 rows, 30,091 distinct `gvkey`, 96.5 MB in 1 file(s).
 
@@ -366,7 +366,7 @@ Quarterly financial statement items for North American companies, active and ina
 
 - Items ending in y (capxy, oancfy, ...) are fiscal year-to-date, not quarterly.
 - datadate is the fiscal period end, not the date the numbers were public. Use load(..., point_in_time=True) for an available_date column.
-- Join to CRSP with qrd.link_crsp_compustat() or qrd.merge_fundamentals().
+- Join to us/equity/stock_daily with qrd.merge_fundamentals().
 
 | Column | Type | Unit | Description |
 |---|---|---|---|
@@ -445,7 +445,7 @@ Daily open, high, low and close of the S&P 500 index, aligned with the SPX optio
 **License:** WRDS / OptionMetrics subscription terms  
 **Frequency:** daily  
 **Keys:** id `-`, date `date`  
-**Aliases:** `spx_daily`, `spx`, `secprd_spx`
+**Aliases:** `spx_daily`, `spx_index_daily`
 
 **Coverage:** 2015-08-31 to 2025-08-29, 2,515 rows, 0.1 MB in 1 file(s).
 
@@ -469,7 +469,7 @@ End-of-day best bid and offer, volume, open interest, implied volatility and gre
 **License:** WRDS / OptionMetrics subscription terms  
 **Frequency:** daily  
 **Keys:** id `optionid`, date `date`  
-**Aliases:** `spx_option_prices`, `spx_options`, `opprcd_spx`
+**Aliases:** `spx_option_prices`, `spx_options`
 
 **Coverage:** 2015-08-31 to 2025-08-29, 34,332,875 rows, 837,308 distinct `optionid`, 1,150.7 MB in 121 file(s).
 
@@ -519,7 +519,7 @@ Daily interpolated implied volatility surface for SPX on a fixed grid of maturit
 **License:** WRDS / OptionMetrics subscription terms  
 **Frequency:** daily  
 **Keys:** id `-`, date `date`  
-**Aliases:** `spx_vol_surface`, `vol_surface`, `vsurfd_spx`
+**Aliases:** `spx_vol_surface`
 
 **Coverage:** 2015-08-31 to 2025-08-29, 940,610 rows, 19.1 MB in 11 file(s).
 
@@ -548,7 +548,7 @@ Daily continuously compounded zero-coupon interest rates at a set of maturities,
 **License:** WRDS / OptionMetrics subscription terms  
 **Frequency:** daily  
 **Keys:** id `-`, date `date`  
-**Aliases:** `zero_curve`, `zero_curve`, `zerocd`
+**Aliases:** `zero_curve`, `usd_zero_curve`
 
 **Coverage:** 2015-08-31 to 2025-08-29, 81,588 rows, 0.6 MB in 1 file(s).
 

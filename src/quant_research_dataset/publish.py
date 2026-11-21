@@ -116,6 +116,9 @@ def publish(
         repo_id=plan.repo_id,
         repo_type="dataset",
         allow_patterns=plan.paths,  # exact manifest paths, so nothing is missed or extra
+        # Remove data files that are no longer part of the release (e.g. renamed datasets).
+        # Files being uploaded in this commit are never deleted.
+        delete_patterns=["*.parquet"],
         commit_message=f"Data files for version {plan.manifest.version}",
     )
     manifest_bytes = (

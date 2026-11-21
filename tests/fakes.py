@@ -76,7 +76,7 @@ def _int_types(spec: DatasetSpec) -> dict[str, pa.DataType]:
 def write_fake_source(root: Path, reg: Registry) -> Path:
     """Write the whole fake raw tree under ``root`` and return it."""
     # --- CRSP: 3 PERMNOs, 4 days spanning a year boundary --------------------
-    crsp = reg.get("us/equity/crsp_daily")
+    crsp = reg.get("us/equity/stock_daily")
     days = [D(2019, 12, 30), D(2019, 12, 31), D(2020, 1, 2), D(2020, 1, 3)]
     rows = [(p, d) for p in (10001, 10002, 10003) for d in days]
     n = len(rows)
@@ -103,7 +103,7 @@ def write_fake_source(root: Path, reg: Registry) -> Path:
     )
 
     # --- CCM link table (CSV, LINKENDDT 'E' = active) -------------------------
-    ccm = reg.get("us/equity/ccm_link")
+    ccm = reg.get("us/equity/stock_company_link")
     _csv(
         root / "WRDS_data/crsp/ccm_link_table.csv",
         raw_table(
@@ -123,7 +123,7 @@ def write_fake_source(root: Path, reg: Registry) -> Path:
     )
 
     # --- Compustat quarterly and annual --------------------------------------
-    fundq = reg.get("us/fundamentals/compustat_quarterly")
+    fundq = reg.get("us/fundamentals/quarterly")
     _parquet(
         root / "WRDS_data/compustat/compustat_fundq_quarterly_2019-2020.parquet",
         raw_table(
@@ -138,7 +138,7 @@ def write_fake_source(root: Path, reg: Registry) -> Path:
         ),
         _int_types(fundq),
     )
-    funda = reg.get("us/fundamentals/compustat_annual")
+    funda = reg.get("us/fundamentals/annual")
     _parquet(
         root / "WRDS_data/compustat/compustat_funda_annual_2019-2020.parquet",
         raw_table(

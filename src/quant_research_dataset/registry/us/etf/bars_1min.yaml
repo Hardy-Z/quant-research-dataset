@@ -1,6 +1,6 @@
 id: us/etf/bars_1min
 title: US ETF 1-minute bars
-aliases: [etf_1min]
+aliases: [us_etf_1min]
 market: us
 asset_class: etf
 frequency: intraday

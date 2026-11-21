@@ -1,6 +1,6 @@
 id: us/etf/daily_bars
 title: US ETF daily bars
-aliases: [etf_daily]
+aliases: [us_etf_daily]
 market: us
 asset_class: etf
 frequency: daily

@@ -1,6 +1,6 @@
-id: us/fundamentals/compustat_annual
-title: Compustat annual fundamentals
-aliases: [funda, compustat_a]
+id: us/fundamentals/annual
+title: US company annual fundamentals
+aliases: [us_fundamentals_annual]
 market: us
 asset_class: fundamentals
 frequency: annual
@@ -14,10 +14,10 @@ id_column: gvkey
 date_column: datadate
 partitioning: none
 sort_by: [gvkey, datadate]
-adapter: us_compustat
+adapter: us_fundamentals
 notes:
   - "datadate is the fiscal period end, not the date the numbers were public. Use load(..., point_in_time=True) for an available_date column."
-  - "Join to CRSP with qrd.link_crsp_compustat() or qrd.merge_fundamentals()."
+  - "Join to us/equity/stock_daily with qrd.merge_fundamentals()."
 build:
   source: WRDS_data/compustat/compustat_funda_annual_*.parquet
 columns:

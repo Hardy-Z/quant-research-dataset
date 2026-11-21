@@ -18,7 +18,7 @@ from . import cn_hk, us
 
 #: Main daily equity price dataset of each market.
 PRICE_DATASETS: dict[str, str] = {
-    "us": "us/equity/crsp_daily",
+    "us": "us/equity/stock_daily",
     "cn_hk": "cn_hk/equity/daily_bars",
 }
 

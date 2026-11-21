@@ -1,10 +1,10 @@
 """Query datasets with SQL through DuckDB (optional dependency).
 
->>> con = qrd.duckdb_connect(["crsp_daily", "zero_curve"], start="2024-01-01")  # doctest: +SKIP
->>> con.sql("select permno, avg(ret) from crsp_daily group by 1").df()           # doctest: +SKIP
+>>> con = qrd.duckdb_connect(["us_stock_daily", "usd_zero_curve"], start="2024-01-01")  # doctest: +SKIP
+>>> con.sql("select permno, avg(ret) from us_stock_daily group by 1").df()           # doctest: +SKIP
 
-Each dataset becomes a view named after its last id component (or its key
-in a ``{name: dataset}`` mapping). Only partitions overlapping
+Each dataset becomes a view named after its first alias, e.g.
+``us_stock_daily`` (or its key in a ``{name: dataset}`` mapping). Only partitions overlapping
 ``[start, end]`` are downloaded; the date filter itself is up to your SQL.
 """
 
@@ -15,6 +15,12 @@ from typing import Any
 
 from .errors import QRDError
 from .query import DateLike, files_for, get_spec
+
+
+def _view_name(dataset: str) -> str:
+    """Descriptive view name: the dataset's first alias, else the last id part."""
+    spec = get_spec(dataset)
+    return spec.aliases[0] if spec.aliases else spec.name
 
 
 def duckdb_connect(
@@ -35,7 +41,7 @@ def duckdb_connect(
     items = (
         datasets.items()
         if isinstance(datasets, Mapping)
-        else ((get_spec(d).name, d) for d in datasets)
+        else ((_view_name(d), d) for d in datasets)
     )
     for view, dataset in items:
         if not view.isidentifier():

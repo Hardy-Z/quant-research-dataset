@@ -15,10 +15,10 @@ import pandas as pd
 from ..errors import QRDError
 from ..query import DateLike, load
 
-CRSP = "us/equity/crsp_daily"
-CCM = "us/equity/ccm_link"
-FUNDA = "us/fundamentals/compustat_annual"
-FUNDQ = "us/fundamentals/compustat_quarterly"
+STOCK_DAILY = "us/equity/stock_daily"
+STOCK_COMPANY_LINK = "us/equity/stock_company_link"
+FUNDAMENTALS_ANNUAL = "us/fundamentals/annual"
+FUNDAMENTALS_QUARTERLY = "us/fundamentals/quarterly"
 SPX_OPTIONS = "us/options/spx_option_prices"
 SPX_SURFACE = "us/options/spx_vol_surface"
 SPX_INDEX = "us/index/spx_daily"
@@ -36,7 +36,7 @@ def _ns(s: pd.Series) -> pd.Series:
 
 
 # ------------------------------------------------------------------- equities
-def get_crsp_daily(
+def get_stock_daily(
     permnos: int | Sequence[int] | None = None,
     start: DateLike | None = None,
     end: DateLike | None = None,
@@ -47,11 +47,11 @@ def get_crsp_daily(
 ) -> pd.DataFrame:
     """CRSP daily stock data by PERMNO and/or ticker.
 
-    >>> qrd.us.get_crsp_daily(tickers="AAPL", start="2024-01-01",
+    >>> qrd.us.get_stock_daily(tickers="AAPL", start="2024-01-01",
     ...                       columns=["date", "permno", "ret"])   # doctest: +SKIP
     """
     filters = {"ticker": tickers} if tickers is not None else None
-    return _frame(load(CRSP, permnos, start, end, columns, filters, common_only=common_only))
+    return _frame(load(STOCK_DAILY, permnos, start, end, columns, filters, common_only=common_only))
 
 
 def get_fundamentals(
@@ -70,13 +70,13 @@ def get_fundamentals(
     """
     if freq not in ("quarterly", "annual"):
         raise QRDError("freq must be 'quarterly' or 'annual'")
-    dataset = FUNDQ if freq == "quarterly" else FUNDA
+    dataset = FUNDAMENTALS_QUARTERLY if freq == "quarterly" else FUNDAMENTALS_ANNUAL
     return _frame(
         load(dataset, gvkeys, start, end, columns, point_in_time=point_in_time, lag_days=lag_days)
     )
 
 
-def link_crsp_compustat(
+def stock_company_links(
     linktypes: Sequence[str] = ("LC", "LU"),
     linkprims: Sequence[str] = ("P", "C"),
 ) -> pd.DataFrame:
@@ -85,7 +85,9 @@ def link_crsp_compustat(
     Returns ``gvkey, permno, linkdt, linkenddt``; ``linkenddt`` is null while a
     link is still active.
     """
-    link = _frame(load(CCM, filters={"linktype": list(linktypes), "linkprim": list(linkprims)}))
+    link = _frame(
+        load(STOCK_COMPANY_LINK, filters={"linktype": list(linktypes), "linkprim": list(linkprims)})
+    )
     return link[["gvkey", "permno", "linkdt", "linkenddt"]].reset_index(drop=True)
 
 
@@ -115,7 +117,7 @@ def merge_fundamentals(
             raise QRDError(f"fundamentals is missing column {col!r} (use point_in_time=True)")
     if "permno" not in prices.columns or date_col not in prices.columns:
         raise QRDError(f"prices needs 'permno' and {date_col!r} columns")
-    link = link_crsp_compustat() if link is None else link
+    link = stock_company_links() if link is None else link
 
     left = prices.assign(**{date_col: _ns(prices[date_col])}).reset_index(drop=True)
     left["_row"] = np.arange(len(left))

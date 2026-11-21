@@ -45,9 +45,9 @@ def fake_hub(monkeypatch: pytest.MonkeyPatch, data_dir: Path) -> list[str]:
 
 def test_hub_backend_downloads_only_needed_files(fake_hub: list[str]) -> None:
     qrd.configure(repo_id="owner/qrd", revision="v1")
-    df = qrd.load("crsp", start="2020-01-02", end="2020-01-02")
+    df = qrd.load("us_stock_daily", start="2020-01-02", end="2020-01-02")
     assert len(df) == 3
-    assert fake_hub == ["manifest.json", "us/equity/crsp_daily/year=2020/part-0.parquet"]
+    assert fake_hub == ["manifest.json", "us/equity/stock_daily/year=2020/part-0.parquet"]
 
 
 def test_hub_backend_gated_message(fake_hub: list[str]) -> None:
@@ -72,7 +72,7 @@ def test_release_plan_only_includes_publishable(data_dir: Path, registry) -> Non
         d.replace("/", "__") for d in plan.datasets
     }
     assert front["extra_gated_fields"]
-    explicit = plan_release(data_dir, "owner/qrd", datasets=["etf_daily"])
+    explicit = plan_release(data_dir, "owner/qrd", datasets=["us_etf_daily"])
     assert explicit.datasets == ("us/etf/daily_bars",)
 
 
@@ -84,13 +84,13 @@ def test_upload_patterns_select_exactly_the_release(data_dir: Path) -> None:
     selected = set(filter_repo_objects(on_disk, allow_patterns=plan.paths))
     expected = {f.path for e in plan.manifest.datasets.values() for f in e.files}
     assert selected == expected  # includes unpartitioned data.parquet files
-    assert "us/equity/ccm_link/data.parquet" in selected
+    assert "us/equity/stock_company_link/data.parquet" in selected
     assert not any(p.startswith("us/etf/") for p in selected)
 
 
 def test_release_plan_requires_built_data(tmp_path: Path, data_dir: Path) -> None:
     m = Manifest.load(data_dir)
-    m.datasets.pop("us/equity/crsp_daily")
+    m.datasets.pop("us/equity/stock_daily")
     m.save(tmp_path)
     with pytest.raises(QRDError, match="not built"):
         plan_release(tmp_path, "owner/qrd")
@@ -100,7 +100,7 @@ def test_verify_detects_tampering(tmp_path: Path, data_dir: Path) -> None:
     copy = tmp_path / "copy"
     shutil.copytree(data_dir, copy)
     assert verify(copy) == []
-    target = next((copy / "us/equity/ccm_link").glob("*.parquet"))
+    target = next((copy / "us/equity/stock_company_link").glob("*.parquet"))
     target.write_bytes(target.read_bytes() + b"x")
     (copy / "us/rates/zero_curve/data.parquet").unlink()
     problems = verify(copy)
@@ -115,7 +115,7 @@ def test_cli_commands(
 ) -> None:
     assert cli.main(["list", "--market", "cn_hk"]) == 0
     assert "cn_hk/fx/daily" in capsys.readouterr().out
-    assert cli.main(["describe", "crsp", "--offline"]) == 0
+    assert cli.main(["describe", "us_stock_daily", "--offline"]) == 0
     assert "permno" in capsys.readouterr().out
     assert cli.main(["verify", "--data-dir", str(data_dir)]) == 0
     assert cli.main(["publish", "--data-dir", str(data_dir), "--repo-id", "owner/qrd"]) == 0

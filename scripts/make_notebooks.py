@@ -52,15 +52,15 @@ One API for every dataset: discover it, read its documentation, and load exactly
     (
         "code",
         """\
-info = qrd.describe("crsp_daily")
+info = qrd.describe("us_stock_daily")
 {k: info[k] for k in ("title", "rows", "start", "end", "n_ids", "size_mb", "load_options")}""",
     ),
     ("code", 'info["columns"].head(12)'),
-    ("md", "## 2. Stocks: CRSP daily, by ticker or PERMNO"),
+    ("md", "## 2. US stocks: daily data by ticker or PERMNO"),
     (
         "code",
         """\
-aapl = qrd.us.get_crsp_daily(tickers="AAPL", start="2025-01-01",
+aapl = qrd.us.get_stock_daily(tickers="AAPL", start="2025-01-01",
                              columns=["date", "permno", "close", "ret", "mktcap"])
 aapl.tail()""",
     ),
@@ -123,10 +123,10 @@ ax.set_ylabel("A price / H price - 1");""",
     (
         "code",
         """\
-con = qrd.duckdb_connect(["crsp_daily"], start="2025-01-01", end="2025-12-31")
+con = qrd.duckdb_connect(["us_stock_daily"], start="2025-01-01", end="2025-12-31")
 con.sql(\"\"\"
     select ticker, exp(sum(ln(1 + ret))) - 1 as ret_2025, max(mktcap) / 1e6 as max_mktcap_bn
-    from crsp_daily
+    from us_stock_daily
     where share_type = 'NS' and security_sub_type = 'COM' and ret is not null
     group by ticker
     order by max_mktcap_bn desc
@@ -139,9 +139,9 @@ MOMENTUM = [
     (
         "md",
         """\
-# Cross-sectional momentum on CRSP, 2016-2025
+# Cross-sectional momentum on US stocks, 2016-2025
 
-A standard 12-1 momentum strategy (Jegadeesh and Titman, 1993) built from raw CRSP data with `quant-research-dataset`:
+A standard 12-1 momentum strategy (Jegadeesh and Titman, 1993) built from daily US stock data (`us_stock_daily`, sourced from CRSP) with `quant-research-dataset`:
 
 * **Universe:** ordinary common stocks on NYSE, NYSE American and Nasdaq (`common_only=True`), excluding stocks below the NYSE 20th percentile of market cap.
 * **Signal:** cumulative return from month t-12 to t-2, skipping the most recent month to avoid short-term reversal.
@@ -150,11 +150,11 @@ A standard 12-1 momentum strategy (Jegadeesh and Titman, 1993) built from raw CR
 Returns are before trading costs.""",
     ),
     ("code", SETUP_MOMENTUM),
-    ("md", "## Data: 11 years of daily CRSP in one call"),
+    ("md", "## Data: 11 years of daily US stock data in one call"),
     (
         "code",
         """\
-daily = qrd.load("crsp_daily", columns=["date", "permno", "ret", "mktcap", "primary_exch", "vwretd"],
+daily = qrd.load("us_stock_daily", columns=["date", "permno", "ret", "mktcap", "primary_exch", "vwretd"],
                  common_only=True)
 print(f"{len(daily):,} rows, {daily.permno.nunique():,} stocks, "
       f"{daily.date.min():%Y-%m-%d} to {daily.date.max():%Y-%m-%d}")""",

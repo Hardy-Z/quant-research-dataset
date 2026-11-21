@@ -1,6 +1,6 @@
-id: us/equity/ccm_link
-title: CRSP/Compustat merged link table
-aliases: [ccm, ccmxpf_linktable]
+id: us/equity/stock_company_link
+title: US stock-to-company identifier links
+aliases: [us_stock_company_link]
 market: us
 asset_class: equity
 frequency: static
@@ -8,7 +8,7 @@ source: CRSP/Compustat Merged (CCM) database via WRDS
 license: WRDS / CRSP subscription terms
 description: >
   Maps Compustat companies (gvkey) to CRSP securities (permno) over time.
-  Use it to join fundamentals to prices; qrd.link_crsp_compustat() applies the
+  Use it to join fundamentals to prices; qrd.stock_company_links() applies the
   standard link filters for you.
 id_column: gvkey
 sort_by: [gvkey, linkdt]

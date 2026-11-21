@@ -1,6 +1,6 @@
-id: us/equity/crsp_daily
-title: CRSP daily stock file
-aliases: [crsp, crsp_dsf]
+id: us/equity/stock_daily
+title: US stock daily prices and returns
+aliases: [us_stock_daily]
 market: us
 asset_class: equity
 frequency: daily
@@ -15,7 +15,7 @@ id_column: permno
 date_column: date
 partitioning: year
 sort_by: [permno, date]
-adapter: us_crsp
+adapter: us_stocks
 notes:
   - "Use load(..., common_only=True) for the standard ordinary-common-stock universe."
   - "Tickers are reused over time; filter by permno for stable identity."

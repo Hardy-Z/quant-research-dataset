@@ -145,7 +145,7 @@ downloads only the partitions a query needs:
 import quant_research_dataset as qrd
 
 qrd.list_datasets()
-crsp = qrd.load("us/equity/crsp_daily", start="2024-01-01", end="2024-12-31",
+crsp = qrd.load("us/equity/stock_daily", start="2024-01-01", end="2024-12-31",
                 columns=["date", "permno", "ret", "mktcap"], common_only=True)
 ```
 
