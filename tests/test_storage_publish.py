@@ -76,6 +76,18 @@ def test_release_plan_only_includes_publishable(data_dir: Path, registry) -> Non
     assert explicit.datasets == ("us/etf/daily_bars",)
 
 
+def test_upload_patterns_select_exactly_the_release(data_dir: Path) -> None:
+    from huggingface_hub.utils import filter_repo_objects
+
+    plan = plan_release(data_dir, "owner/qrd")
+    on_disk = [p.relative_to(data_dir).as_posix() for p in data_dir.rglob("*") if p.is_file()]
+    selected = set(filter_repo_objects(on_disk, allow_patterns=plan.paths))
+    expected = {f.path for e in plan.manifest.datasets.values() for f in e.files}
+    assert selected == expected  # includes unpartitioned data.parquet files
+    assert "us/equity/ccm_link/data.parquet" in selected
+    assert not any(p.startswith("us/etf/") for p in selected)
+
+
 def test_release_plan_requires_built_data(tmp_path: Path, data_dir: Path) -> None:
     m = Manifest.load(data_dir)
     m.datasets.pop("us/equity/crsp_daily")

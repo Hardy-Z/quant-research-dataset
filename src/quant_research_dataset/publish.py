@@ -27,6 +27,11 @@ class ReleasePlan:
     manifest: Manifest
     card: str
 
+    @property
+    def paths(self) -> list[str]:
+        """Repo paths of every data file in the release."""
+        return [f.path for d in self.datasets for f in self.manifest.datasets[d].files]
+
     def summary(self) -> str:
         lines = [
             f"Upload to {self.repo_id}: {len(self.datasets)} datasets, {self.files} files, {self.bytes / 1e9:.2f} GB"
@@ -110,7 +115,7 @@ def publish(
         folder_path=str(data_dir),
         repo_id=plan.repo_id,
         repo_type="dataset",
-        allow_patterns=[f"{d}/**/*.parquet" for d in plan.datasets],
+        allow_patterns=plan.paths,  # exact manifest paths, so nothing is missed or extra
         commit_message=f"Data files for version {plan.manifest.version}",
     )
     manifest_bytes = (
@@ -131,5 +136,9 @@ def publish(
         commit_message="Dataset card",
     )
     if tag:
-        api.create_tag(plan.repo_id, tag=tag, repo_type="dataset", exist_ok=True)
+        # Re-publishing a version moves its tag to the new commit.
+        existing = {t.name for t in api.list_repo_refs(plan.repo_id, repo_type="dataset").tags}
+        if tag in existing:
+            api.delete_tag(plan.repo_id, tag=tag, repo_type="dataset")
+        api.create_tag(plan.repo_id, tag=tag, repo_type="dataset")
     return f"https://huggingface.co/datasets/{plan.repo_id}"
