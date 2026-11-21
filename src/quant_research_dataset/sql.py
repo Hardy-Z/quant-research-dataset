@@ -1,0 +1,48 @@
+"""Query datasets with SQL through DuckDB (optional dependency).
+
+>>> con = qrd.duckdb_connect(["crsp_daily", "zero_curve"], start="2024-01-01")  # doctest: +SKIP
+>>> con.sql("select permno, avg(ret) from crsp_daily group by 1").df()           # doctest: +SKIP
+
+Each dataset becomes a view named after its last id component (or its key
+in a ``{name: dataset}`` mapping). Only partitions overlapping
+``[start, end]`` are downloaded; the date filter itself is up to your SQL.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Mapping, Sequence
+from typing import Any
+
+from .errors import QRDError
+from .query import DateLike, files_for, get_spec
+
+
+def duckdb_connect(
+    datasets: Sequence[str] | Mapping[str, str],
+    start: DateLike | None = None,
+    end: DateLike | None = None,
+    connection: Any = None,
+) -> Any:
+    """Return a DuckDB connection with one view per dataset."""
+    try:
+        import duckdb
+    except ImportError as exc:  # pragma: no cover - depends on environment
+        raise QRDError(
+            "SQL support needs duckdb: pip install 'quant-research-dataset[duckdb]'"
+        ) from exc
+
+    con = connection or duckdb.connect()
+    items = (
+        datasets.items()
+        if isinstance(datasets, Mapping)
+        else ((get_spec(d).name, d) for d in datasets)
+    )
+    for view, dataset in items:
+        if not view.isidentifier():
+            raise QRDError(f"view name {view!r} is not a valid identifier")
+        paths = [p.as_posix() for p in files_for(dataset, start, end)]
+        if not paths:
+            raise QRDError(f"no files for {dataset} in the requested range")
+        file_list = ", ".join("'" + p.replace("'", "''") + "'" for p in paths)
+        con.execute(f"create or replace view {view} as select * from read_parquet([{file_list}])")
+    return con

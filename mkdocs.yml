@@ -1,0 +1,14 @@
+site_name: quant-research-dataset
+repo_url: https://github.com/Hardy-Z/quant-research-dataset
+theme:
+  name: material
+  features: [navigation.sections, content.code.copy]
+nav:
+  - Home: index.md
+  - Data dictionary: datasets.md
+  - Adding a dataset: adding-a-dataset.md
+  - Maintainer guide: maintainers.md
+markdown_extensions:
+  - tables
+  - admonition
+  - pymdownx.superfences

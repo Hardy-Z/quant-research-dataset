@@ -1,0 +1,23 @@
+id: us/rates/zero_curve
+title: USD zero-coupon yield curve
+aliases: [zero_curve, zerocd]
+market: us
+asset_class: rates
+frequency: daily
+source: OptionMetrics IvyDB US `zerocd` (Zero Coupon Yield Curve), via WRDS
+license: WRDS / OptionMetrics subscription terms
+description: >
+  Daily continuously compounded zero-coupon interest rates at a set of
+  maturities, built by OptionMetrics from money-market and interest-rate
+  futures prices. Used to discount option payoffs.
+date_column: date
+sort_by: [date, days]
+notes:
+  - "rate is in percent. qrd.zero_rate() interpolates it at any maturity."
+build:
+  source: WRDS_data/optionmetrics/optionm_zerocd_zero_curve_*.csv
+  format: csv
+columns:
+  - {name: date, type: date32, description: Date}
+  - {name: days, type: int64, unit: calendar days, description: Maturity}
+  - {name: rate, type: float64, unit: percent (continuously compounded), description: Zero-coupon rate}

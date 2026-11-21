@@ -1,0 +1,29 @@
+id: us/options/spx_vol_surface
+title: SPX standardized volatility surface
+aliases: [vol_surface, vsurfd_spx]
+market: us
+asset_class: options
+frequency: daily
+source: OptionMetrics IvyDB US `vsurfd` (Volatility Surface), SPX, via WRDS
+license: WRDS / OptionMetrics subscription terms
+description: >
+  Daily interpolated implied volatility surface for SPX on a fixed grid of
+  maturities (days) and deltas, built by OptionMetrics with a kernel
+  smoother. Handy for constant-maturity IV, skew and term-structure studies.
+date_column: date
+partitioning: year
+sort_by: [date, cp_flag, days, delta]
+notes:
+  - "delta is in percent: 50 = at-the-money; puts use negative deltas (-10 ... -90)."
+build:
+  source: WRDS_data/optionmetrics/optionm_vsurfd_spx_vol_surface_*.parquet
+columns:
+  - {name: date, type: date32, description: Date}
+  - {name: days, type: int64, unit: calendar days, description: Maturity grid point}
+  - {name: delta, type: int64, unit: percent, description: Delta grid point (negative for puts)}
+  - {name: cp_flag, type: string, description: "C = call, P = put"}
+  - {name: impl_volatility, type: float64, unit: decimal (annualized), description: Interpolated implied volatility}
+  - {name: impl_strike, type: float64, unit: index points, description: Strike implied by the delta and volatility}
+  - {name: impl_premium, type: float64, unit: index points, description: Option premium implied by the surface}
+  - {name: dispersion, type: float64, description: Kernel-weighted dispersion of the input implied volatilities}
+  - {name: secid, type: int64, description: OptionMetrics security id of the underlying}

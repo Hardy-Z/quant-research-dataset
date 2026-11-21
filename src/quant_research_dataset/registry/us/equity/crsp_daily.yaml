@@ -1,0 +1,60 @@
+id: us/equity/crsp_daily
+title: CRSP daily stock file
+aliases: [crsp, crsp_dsf]
+market: us
+asset_class: equity
+frequency: daily
+source: CRSP US Stock Database, CIZ (v2) format, via WRDS
+license: WRDS / CRSP subscription terms
+description: >
+  Daily prices, returns, volume and shares outstanding for every US-listed
+  security in CRSP, including delisted ones (no survivorship bias). Returns
+  already include delisting returns on the delisting day, as in the CIZ format.
+  Also carries the CRSP value-weighted market return and the S&P 500 return.
+id_column: permno
+date_column: date
+partitioning: year
+sort_by: [permno, date]
+adapter: us_crsp
+notes:
+  - "Use load(..., common_only=True) for the standard ordinary-common-stock universe."
+  - "Tickers are reused over time; filter by permno for stable identity."
+  - "mktcap and shrout are in thousands (of dollars and shares)."
+build:
+  source: WRDS_data/crsp/crsp_daily_stock_*.parquet
+columns:
+  - {name: date, source: DlyCalDt, type: date32, description: Trading date}
+  - {name: permno, source: PERMNO, type: int32, description: CRSP permanent security identifier}
+  - {name: permco, source: PERMCO, type: int32, description: CRSP permanent company identifier}
+  - {name: ticker, source: Ticker, type: string, description: Ticker symbol on this date}
+  - {name: cusip, source: CUSIP, type: string, description: 8-character CUSIP on this date}
+  - {name: hdr_cusip, source: HdrCUSIP, type: string, description: Most recent (header) CUSIP}
+  - {name: siccd, source: SICCD, type: string, description: Standard Industrial Classification code}
+  - {name: primary_exch, source: PrimaryExch, type: string, description: "Primary exchange: N=NYSE, A=NYSE American, Q=Nasdaq, R=NYSE Arca, B=Cboe BZX, X=other, I=IEX"}
+  - {name: share_type, source: ShareType, type: string, description: "Share type: NS=ordinary shares, AD=ADR, SB=shares of beneficial interest, UG=units"}
+  - {name: security_type, source: SecurityType, type: string, description: "Security type: EQTY=equity, FUND=fund"}
+  - {name: security_sub_type, source: SecuritySubType, type: string, description: "Sub type: COM=common stock, ETF, CEF=closed-end fund"}
+  - {name: issuer_type, source: IssuerType, type: string, description: "Issuer type: CORP, ACOR (asset-backed corporation), REIT"}
+  - {name: us_inc_flg, source: USIncFlg, type: string, description: Y if incorporated in the US}
+  - {name: conditional_type, source: ConditionalType, type: string, description: "Trading condition: RW=regular way, NW=when-issued, NT=not trading"}
+  - {name: trading_status_flg, source: TradingStatusFlg, type: string, description: "Trading status: A=active, H=halted, S=suspended, D=delisted, X=unknown"}
+  - {name: delist_flg, source: DlyDelFlg, type: string, description: Y on the delisting day}
+  - {name: open, source: DlyOpen, type: float64, unit: USD, description: Opening price}
+  - {name: high, source: DlyHigh, type: float64, unit: USD, description: High price}
+  - {name: low, source: DlyLow, type: float64, unit: USD, description: Low price}
+  - {name: close, source: DlyClose, type: float64, unit: USD, description: Closing price (null if no trade)}
+  - {name: prc, source: DlyPrc, type: float64, unit: USD, description: "CRSP price: close, or bid/ask midpoint when there was no trade (see prc_flg)"}
+  - {name: prc_flg, source: DlyPrcFlg, type: string, description: "Price source: TR=trade, BA=bid/ask average, others are special cases"}
+  - {name: bid, source: DlyBid, type: float64, unit: USD, description: Closing bid}
+  - {name: ask, source: DlyAsk, type: float64, unit: USD, description: Closing ask}
+  - {name: volume, source: DlyVol, type: int64, unit: shares, description: Share volume}
+  - {name: num_trd, source: DlyNumTrd, type: int64, description: Number of trades}
+  - {name: ret, source: DlyRet, type: float64, unit: decimal, description: Total return including dividends (and the delisting return on the delisting day)}
+  - {name: retx, source: DlyRetx, type: float64, unit: decimal, description: Return excluding dividends}
+  - {name: ret_miss_flg, source: DlyRetMissFlg, type: string, description: "Reason a return is missing; NA when the return is present"}
+  - {name: shrout, source: ShrOut, type: int64, unit: thousand shares, description: Shares outstanding}
+  - {name: mktcap, source: DlyCap, type: float64, unit: thousand USD, description: Market capitalization (abs(prc) x shrout)}
+  - {name: fac_prc, source: DlyFacPrc, type: float64, description: Factor to adjust price for this day's distribution}
+  - {name: cum_fac_pr, source: DlyCumFacPr, type: float64, description: Cumulative price adjustment factor}
+  - {name: vwretd, type: float64, unit: decimal, description: CRSP value-weighted market return incl. dividends}
+  - {name: sprtrn, type: float64, unit: decimal, description: S&P 500 index return}

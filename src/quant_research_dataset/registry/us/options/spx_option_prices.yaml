@@ -1,0 +1,54 @@
+id: us/options/spx_option_prices
+title: SPX index option prices, implied volatility and greeks
+aliases: [spx_options, opprcd_spx]
+market: us
+asset_class: options
+frequency: daily
+source: OptionMetrics IvyDB US `opprcd` (Option Prices), SPX (secid 108105), via WRDS
+license: WRDS / OptionMetrics subscription terms
+description: >
+  End-of-day best bid and offer, volume, open interest, implied volatility and
+  greeks for every listed S&P 500 index option (standard AM-settled SPX and
+  PM-settled SPXW weeklies). One row per option contract per day.
+id_column: optionid
+date_column: date
+partitioning: year_month
+sort_by: [date, exdate, cp_flag, strike]
+adapter: us_option_prices
+notes:
+  - "strike is in index points (OptionMetrics stores strike x 1000; it is divided here)."
+  - "load() adds mid, spread and dte (calendar days to expiry) by default; pass derived=False to skip."
+  - "impl_volatility and greeks are null when OptionMetrics could not solve for them (e.g. deep ITM or no bid)."
+  - "Partitioned by month: a one-day query downloads one file of about 10 MB."
+  - "The extract's root, suffix and forward_price fields were empty and are not included."
+build:
+  source: WRDS_data/optionmetrics/optionm_opprcd_spx_option_prices_*.parquet
+  options:
+    scale: {strike: 0.001}
+columns:
+  - {name: date, type: date32, description: Quote date}
+  - {name: optionid, type: int64, description: OptionMetrics unique option identifier}
+  - {name: symbol, type: string, description: "Option symbol, e.g. SPXW 240315C5000000 (root SPX = AM-settled monthly, SPXW = PM-settled)"}
+  - {name: exdate, type: date32, description: Expiration date}
+  - {name: cp_flag, type: string, description: "C = call, P = put"}
+  - {name: strike, source: strike_price, type: float64, unit: index points, description: Strike price}
+  - {name: best_bid, type: float64, unit: USD, description: Best closing bid across exchanges}
+  - {name: best_offer, type: float64, unit: USD, description: Best closing offer across exchanges}
+  - {name: last_date, type: date32, description: Date of the last trade}
+  - {name: volume, type: int64, unit: contracts, description: Contracts traded}
+  - {name: open_interest, type: int64, unit: contracts, description: Open interest}
+  - {name: impl_volatility, type: float64, unit: decimal (annualized), description: Implied volatility}
+  - {name: delta, type: float64, description: Delta}
+  - {name: gamma, type: float64, description: Gamma}
+  - {name: vega, type: float64, description: Vega (price change per 1.00 change in volatility)}
+  - {name: theta, type: float64, description: Theta (annualized)}
+  - {name: am_settlement, type: int64, description: "1 if AM-settled (standard third-Friday SPX), 0 if PM-settled (SPXW)"}
+  - {name: expiry_indicator, type: string, description: "OptionMetrics expiry flag: w = weekly, m = month-end, null = other (incl. standard monthly and Tuesday/Thursday dailies). Use am_settlement = 1 to pick standard monthly SPX expiries."}
+  - {name: ss_flag, type: string, description: Settlement flag (0 = standard)}
+  - {name: symbol_flag, type: string, description: Symbol format flag}
+  - {name: contract_size, type: int64, description: Contract multiplier}
+  - {name: cfadj, type: float64, description: Cumulative adjustment factor}
+  - {name: exercise_style, type: string, description: "E = European"}
+  - {name: index_flag, type: int64, description: 1 if the underlying is an index}
+  - {name: issuer, type: string, description: Underlying issuer name}
+  - {name: secid, type: int64, description: OptionMetrics security id of the underlying}

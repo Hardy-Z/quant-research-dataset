@@ -1,0 +1,25 @@
+id: us/index/spx_daily
+title: S&P 500 index daily prices
+aliases: [spx, secprd_spx]
+market: us
+asset_class: index
+frequency: daily
+source: OptionMetrics IvyDB US `secprd` (Security Prices), SPX, via WRDS
+license: WRDS / OptionMetrics subscription terms
+description: >
+  Daily open, high, low and close of the S&P 500 index, aligned with the SPX
+  option data (same calendar and source).
+date_column: date
+sort_by: [date]
+build:
+  source: WRDS_data/optionmetrics/optionm_secprd_spx_index_prices_*.csv
+  format: csv
+columns:
+  - {name: date, type: date32, description: Date}
+  - {name: open, type: float64, unit: index points, description: Open}
+  - {name: high, type: float64, unit: index points, description: High}
+  - {name: low, type: float64, unit: index points, description: Low}
+  - {name: close, type: float64, unit: index points, description: Close}
+  - {name: ret, source: return, type: float64, unit: decimal, description: Daily price return}
+  - {name: secid, type: int64, description: OptionMetrics security id}
+  - {name: ticker, type: string, description: Ticker}

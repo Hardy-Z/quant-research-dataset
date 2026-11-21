@@ -1,0 +1,25 @@
+id: cn_hk/fx/daily
+title: CNY/HKD and USD/HKD daily exchange rates
+aliases: [cnhk_fx]
+market: cn_hk
+asset_class: fx
+frequency: daily
+source: Yahoo Finance (via yfinance)
+license: Yahoo Finance terms of service
+publish: false
+description: >
+  Daily exchange rates used to put A shares (CNY) and H shares (HKD) on the
+  same currency.
+id_column: symbol
+date_column: date
+sort_by: [symbol, date]
+notes:
+  - "CNYHKD=X is HKD per 1 CNY; HKD=X is HKD per 1 USD."
+build:
+  source: cross_listed/yahoo_daily.parquet
+  include_ids: ["CNYHKD=X", "HKD=X"]
+columns:
+  - {name: symbol, source: ticker, type: string, description: Yahoo Finance symbol}
+  - {name: date, type: date32, description: Date}
+  - {name: open, type: float64, description: Open rate}
+  - {name: close, type: float64, description: Close rate}

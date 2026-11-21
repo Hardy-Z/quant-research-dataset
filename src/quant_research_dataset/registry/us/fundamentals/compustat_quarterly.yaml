@@ -1,0 +1,90 @@
+id: us/fundamentals/compustat_quarterly
+title: Compustat quarterly fundamentals
+aliases: [fundq, compustat_q]
+market: us
+asset_class: fundamentals
+frequency: quarterly
+source: S&P Compustat North America `comp.fundq` via WRDS
+license: WRDS / S&P Compustat subscription terms
+description: >
+  Quarterly financial statement items for North American companies, active and
+  inactive, in the standard industrial format (indfmt=INDL, datafmt=STD,
+  consol=C). Values are as reported in the company's currency (curcdq).
+id_column: gvkey
+date_column: datadate
+partitioning: none
+sort_by: [gvkey, datadate]
+adapter: us_compustat
+notes:
+  - "Items ending in y (capxy, oancfy, ...) are fiscal year-to-date, not quarterly."
+  - "datadate is the fiscal period end, not the date the numbers were public. Use load(..., point_in_time=True) for an available_date column."
+  - "Join to CRSP with qrd.link_crsp_compustat() or qrd.merge_fundamentals()."
+build:
+  source: WRDS_data/compustat/compustat_fundq_quarterly_*.parquet
+columns:
+  - {name: gvkey, type: string, description: "Compustat company key (6 digits, zero padded)"}
+  - {name: datadate, type: date32, description: "Fiscal period end date"}
+  - {name: costat, type: string, description: "Company status: A=active, I=inactive"}
+  - {name: curcdq, type: string, description: "ISO currency of reported values"}
+  - {name: datafmt, type: string, description: "Data format (STD = standardized)"}
+  - {name: indfmt, type: string, description: "Industry format (INDL = industrial)"}
+  - {name: consol, type: string, description: "Consolidation level (C = consolidated)"}
+  - {name: tic, type: string, description: "Ticker"}
+  - {name: conm, type: string, description: "Company name"}
+  - {name: cusip, type: string, description: "CUSIP (9 characters)"}
+  - {name: cik, type: string, description: "SEC Central Index Key"}
+  - {name: exchg, type: int64, description: "Stock exchange code"}
+  - {name: fyr, type: int64, description: "Fiscal year-end month"}
+  - {name: fic, type: string, description: "Country of incorporation (ISO)"}
+  - {name: gind, type: string, description: "GICS industry"}
+  - {name: gsector, type: string, description: "GICS sector"}
+  - {name: loc, type: string, description: "Country of headquarters (ISO)"}
+  - {name: naics, type: string, description: "NAICS industry code"}
+  - {name: sic, type: string, description: "SIC industry code"}
+  - {name: ajexq, type: float64, description: "Cumulative adjustment factor (ex-date)"}
+  - {name: datacqtr, type: string, description: "Calendar quarter, e.g. 2020Q1"}
+  - {name: datafqtr, type: string, description: "Fiscal quarter, e.g. 2020Q1"}
+  - {name: fqtr, type: int64, description: "Fiscal quarter (1-4)"}
+  - {name: fyearq, type: int64, description: "Fiscal year"}
+  - {name: rdq, type: date32, description: "Report date of quarterly earnings (when the numbers became public)"}
+  - {name: actq, type: float64, unit: "million (reporting currency)", description: "Current assets, total"}
+  - {name: atq, type: float64, unit: "million (reporting currency)", description: "Total assets"}
+  - {name: ceqq, type: float64, unit: "million (reporting currency)", description: "Common equity, total"}
+  - {name: cheq, type: float64, unit: "million (reporting currency)", description: "Cash and short-term investments"}
+  - {name: cogsq, type: float64, unit: "million (reporting currency)", description: "Cost of goods sold"}
+  - {name: cshoq, type: float64, unit: "million shares", description: "Common shares outstanding"}
+  - {name: cshprq, type: float64, unit: "million shares", description: "Shares used to compute basic EPS"}
+  - {name: dlcq, type: float64, unit: "million (reporting currency)", description: "Debt in current liabilities"}
+  - {name: dlttq, type: float64, unit: "million (reporting currency)", description: "Long-term debt, total"}
+  - {name: dpq, type: float64, unit: "million (reporting currency)", description: "Depreciation and amortization"}
+  - {name: epsfxq, type: float64, unit: "currency units per share", description: "EPS, diluted, excl. extraordinary items"}
+  - {name: epspxq, type: float64, unit: "currency units per share", description: "EPS, basic, excl. extraordinary items"}
+  - {name: ibq, type: float64, unit: "million (reporting currency)", description: "Income before extraordinary items"}
+  - {name: intanq, type: float64, unit: "million (reporting currency)", description: "Intangible assets, total"}
+  - {name: invtq, type: float64, unit: "million (reporting currency)", description: "Inventories, total"}
+  - {name: lctq, type: float64, unit: "million (reporting currency)", description: "Current liabilities, total"}
+  - {name: ltq, type: float64, unit: "million (reporting currency)", description: "Total liabilities"}
+  - {name: mibq, type: float64, unit: "million (reporting currency)", description: "Noncontrolling interest (balance sheet)"}
+  - {name: niq, type: float64, unit: "million (reporting currency)", description: "Net income"}
+  - {name: oiadpq, type: float64, unit: "million (reporting currency)", description: "Operating income after depreciation"}
+  - {name: oibdpq, type: float64, unit: "million (reporting currency)", description: "Operating income before depreciation"}
+  - {name: ppentq, type: float64, unit: "million (reporting currency)", description: "Property, plant and equipment, net"}
+  - {name: pstkq, type: float64, unit: "million (reporting currency)", description: "Preferred stock, par value"}
+  - {name: pstkrq, type: float64, unit: "million (reporting currency)", description: "Preferred stock, redeemable"}
+  - {name: rectq, type: float64, unit: "million (reporting currency)", description: "Receivables, total"}
+  - {name: revtq, type: float64, unit: "million (reporting currency)", description: "Revenue, total"}
+  - {name: saleq, type: float64, unit: "million (reporting currency)", description: "Sales (net)"}
+  - {name: seqq, type: float64, unit: "million (reporting currency)", description: "Stockholders' equity, parent"}
+  - {name: spiq, type: float64, unit: "million (reporting currency)", description: "Special items"}
+  - {name: txditcq, type: float64, unit: "million (reporting currency)", description: "Deferred taxes and investment tax credit"}
+  - {name: txtq, type: float64, unit: "million (reporting currency)", description: "Income taxes, total"}
+  - {name: xintq, type: float64, unit: "million (reporting currency)", description: "Interest and related expense"}
+  - {name: xrdq, type: float64, unit: "million (reporting currency)", description: "Research and development expense"}
+  - {name: xsgaq, type: float64, unit: "million (reporting currency)", description: "Selling, general and administrative expense"}
+  - {name: capxy, type: float64, unit: "million (reporting currency)", description: "Capital expenditures, fiscal year to date"}
+  - {name: dvy, type: float64, unit: "million (reporting currency)", description: "Cash dividends (cash flow statement), fiscal year to date"}
+  - {name: oancfy, type: float64, unit: "million (reporting currency)", description: "Net cash flow from operating activities, fiscal year to date"}
+  - {name: prstkcy, type: float64, unit: "million (reporting currency)", description: "Purchase of common and preferred stock, fiscal year to date"}
+  - {name: sstky, type: float64, unit: "million (reporting currency)", description: "Sale of common and preferred stock, fiscal year to date"}
+  - {name: dvpsxq, type: float64, unit: "currency units per share", description: "Dividends per share by ex-date"}
+  - {name: prccq, type: float64, unit: "currency units per share", description: "Closing price at quarter end"}
