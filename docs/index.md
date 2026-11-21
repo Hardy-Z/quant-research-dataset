@@ -25,7 +25,7 @@ df = qrd.load(
 | Revision (branch or tag) | `qrd.configure(revision=...)` | `QRD_REVISION` | `main` |
 | Download cache | `qrd.configure(cache_dir=...)` | `QRD_CACHE_DIR` | Hugging Face cache |
 | Extra registry folders | | `QRD_REGISTRY_PATH` | none |
-| Access token | `qrd.configure(token=...)` | `HF_TOKEN` | `huggingface-cli login` |
+| Access token | `qrd.configure(token=...)` | `HF_TOKEN` | `hf auth login` |
 
 ## Command line
 

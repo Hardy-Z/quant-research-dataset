@@ -55,7 +55,7 @@ class HubBackend:
 
     Files are cached by ``huggingface_hub``, so each partition is downloaded
     once per revision. Private and gated repos need a token: run
-    ``huggingface-cli login`` or set ``HF_TOKEN``.
+    ``hf auth login`` or set ``HF_TOKEN``.
     """
 
     def __init__(
@@ -91,12 +91,12 @@ class HubBackend:
         except GatedRepoError as exc:
             raise ConfigError(
                 f"{self.repo_id} is gated: request access on its Hugging Face page, then log in "
-                "with `huggingface-cli login` or set HF_TOKEN"
+                "with `hf auth login` or set HF_TOKEN"
             ) from exc
         except RepositoryNotFoundError as exc:
             raise ConfigError(
                 f"dataset repo {self.repo_id!r} not found, or it is private and no valid token "
-                "was given. Log in with `huggingface-cli login` or set HF_TOKEN."
+                "was given. Log in with `hf auth login` or set HF_TOKEN."
             ) from exc
 
     def manifest(self) -> Manifest:

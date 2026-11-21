@@ -14,7 +14,7 @@ import nbformat as nbf
 ROOT = Path(__file__).resolve().parents[1]
 
 HUB_NOTE = """
-# Data is read from the Hugging Face Hub by default (run `huggingface-cli login` once).
+# Data is read from the Hugging Face Hub by default (run `hf auth login` once).
 # To use a local copy instead:  qrd.configure(data_dir="path/to/data")
 pd.set_option("display.width", 140)"""
 

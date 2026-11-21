@@ -1,8 +1,15 @@
 # quant-research-dataset
 
 [![CI](https://github.com/Hardy-Z/quant-research-dataset/actions/workflows/ci.yml/badge.svg)](https://github.com/Hardy-Z/quant-research-dataset/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/quant-research-dataset)](https://pypi.org/project/quant-research-dataset/)
+[![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20dataset-Hardy0102%2Fquant--research--dataset-yellow)](https://huggingface.co/datasets/Hardy0102/quant-research-dataset)
 ![Python](https://img.shields.io/badge/python-3.10%E2%80%933.13-blue)
 ![License](https://img.shields.io/badge/code-MIT-green)
+
+**Code:** [GitHub](https://github.com/Hardy-Z/quant-research-dataset) ·
+**Package:** [PyPI](https://pypi.org/project/quant-research-dataset/) ·
+**Data:** [Hugging Face](https://huggingface.co/datasets/Hardy0102/quant-research-dataset) (gated) ·
+**Docs:** [data dictionary](docs/datasets.md)
 
 **One Python API for research-grade market data across markets.** Equities,
 fundamentals, index options, rates and ETFs live in a versioned, partitioned
@@ -70,12 +77,17 @@ from your own copy with `qrd build`. Full column-level documentation: [docs/data
 
 ```bash
 pip install quant-research-dataset            # add [duckdb] for SQL
-huggingface-cli login                         # once; the dataset is gated
+hf auth login                                 # once; the dataset is gated
 ```
 
-The data is gated: request access on the dataset's Hugging Face page and
-confirm you are entitled to use the underlying vendor data (see
-[License](#license)). Already have the files locally? Skip the Hub:
+1. Request access on the [dataset page](https://huggingface.co/datasets/Hardy0102/quant-research-dataset)
+   and confirm you may use the underlying vendor data (see [License](#license)).
+   Requests are approved by hand.
+2. Log in with a Hugging Face token (read access is enough).
+3. `import quant_research_dataset as qrd` and load: files download on first use
+   and are cached.
+
+Already have the files locally? Skip the Hub:
 
 ```python
 qrd.configure(data_dir="D:/qrd-data")  # or set QRD_DATA_DIR

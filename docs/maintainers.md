@@ -26,7 +26,7 @@ dataset card (`hf/README.md`) from the registry.
 ## 3. Publish to Hugging Face
 
 ```bash
-huggingface-cli login                    # a token with write access
+hf auth login                    # a token with write access
 qrd publish --data-dir prepared --repo-id <owner>/quant-research-dataset            # dry run
 qrd publish --data-dir prepared --repo-id <owner>/quant-research-dataset --tag v2025.12 --yes
 ```
@@ -40,8 +40,15 @@ qrd publish --data-dir prepared --repo-id <owner>/quant-research-dataset --tag v
 
 ## 4. Release the package
 
+Releases use PyPI trusted publishing from GitHub Actions (`.github/workflows/release.yml`),
+so no API token is stored anywhere.
+
+One-time setup, on both https://test.pypi.org and https://pypi.org: add a *pending
+publisher* with owner `Hardy-Z`, repository `quant-research-dataset`, workflow
+`release.yml`, and environment `testpypi` (TestPyPI) or `pypi` (PyPI).
+
 ```bash
-# bump src/quant_research_dataset/_version.py and CHANGELOG.md
-python -m build
-twine upload dist/*
+# bump src/quant_research_dataset/_version.py and CHANGELOG.md, commit, then:
+gh workflow run release.yml -f target=testpypi     # test release
+git tag v0.1.0 && git push origin v0.1.0           # real release (tag must match the version)
 ```
