@@ -9,6 +9,15 @@ qrd -v build --source "<raw data root>" --out prepared --version 2025.12
 qrd verify --data-dir prepared
 ```
 
+The CSI 300 datasets come from a public release instead of the raw folder.
+Fetch them into a separate source folder and build them from there:
+
+```bash
+python scripts/fetch_csi300.py --out source_data_extra
+qrd -v build --source source_data_extra --out prepared --version 2025.12 \
+    --dataset cn_hk/equity/csi300_stock_daily --dataset cn_hk/equity/csi300_stocks
+```
+
 `prepared/` is git-ignored. It contains one folder per dataset and
 `manifest.json` (rows, bytes, SHA-256 and date range of every file). Rebuild a
 single dataset with `--dataset <id>`; the manifest is refreshed for everything

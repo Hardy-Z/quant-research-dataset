@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+* New datasets `cn_hk/equity/csi300_stock_daily` (adjusted daily prices of the
+  810 stocks that have been in the CSI 300, 2006 to March 2025) and
+  `cn_hk/equity/csi300_stocks` (names and Shenwan industries), from the
+  MIT-licensed FinMultiTime release; `scripts/fetch_csi300.py` downloads the source.
+* Shortcuts `qrd.cn_hk.get_csi300_prices` and `get_csi300_stocks`.
+* Build: string dates with a time and UTC offset keep their local calendar date.
+
 ## 0.1.0 (unreleased)
 
 First release.

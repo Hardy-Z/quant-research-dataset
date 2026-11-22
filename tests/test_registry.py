@@ -43,7 +43,16 @@ def test_builtin_registry_loads(registry: Registry) -> None:
 
 
 def test_names_describe_content_not_vendor(registry: Registry) -> None:
-    vendors = ("crsp", "compustat", "ccm", "optionmetrics", "wrds", "alpaca", "yahoo")
+    vendors = (
+        "crsp",
+        "compustat",
+        "ccm",
+        "optionmetrics",
+        "wrds",
+        "alpaca",
+        "yahoo",
+        "finmultitime",
+    )
     for spec in registry:
         for name in (spec.id, *spec.aliases):
             assert not any(v in name.lower() for v in vendors), name

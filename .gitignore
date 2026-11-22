@@ -15,6 +15,7 @@ site/
 
 # Data never goes into git: raw inputs, prepared partitions, caches
 source_data_copy/
+source_data_extra/
 prepared/
 .qrd_cache/
 *.parquet

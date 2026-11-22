@@ -26,6 +26,15 @@ def test_get_prices_dispatch(local: Path) -> None:
         qrd.get_prices(market="mars")
 
 
+def test_csi300_shortcuts(local: Path) -> None:
+    stocks = qrd.cn_hk.get_csi300_stocks()
+    assert list(stocks.columns) == ["symbol", "name", "industry", "has_prices"]
+    assert len(stocks) == 3
+    px = qrd.cn_hk.get_csi300_prices("600001.SS", start="2020-01-01")
+    assert px["close"].tolist() == [10.6]
+    assert qrd.load("hs300_stock_daily").shape[0] == 3
+
+
 def test_get_stock_daily_by_ticker(local: Path) -> None:
     df = qrd.get_stock_daily(tickers="AAA", columns=["date", "permno"])
     assert set(df["permno"]) == {10001}

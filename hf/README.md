@@ -14,6 +14,10 @@ tags:
 size_categories:
 - 10M<n<100M
 configs:
+- config_name: cn_hk__equity__csi300_stock_daily
+  data_files: cn_hk/equity/csi300_stock_daily/**/*.parquet
+- config_name: cn_hk__equity__csi300_stocks
+  data_files: cn_hk/equity/csi300_stocks/**/*.parquet
 - config_name: us__equity__stock_daily
   data_files: us/equity/stock_daily/**/*.parquet
 - config_name: us__fundamentals__annual
@@ -62,6 +66,8 @@ crsp = qrd.load(
 
 | Dataset | Title | Start | End | Rows |
 |---|---|---|---|---|
+| `cn_hk/equity/csi300_stock_daily` | CSI 300 constituent stocks daily prices | 2006-01-04 | 2025-03-31 | 3,139,412 |
+| `cn_hk/equity/csi300_stocks` | CSI 300 constituent stocks with names and industries | - | - | 858 |
 | `us/equity/stock_daily` | US stock daily prices and returns | 2015-01-02 | 2025-12-31 | 23,101,820 |
 | `us/fundamentals/annual` | US company annual fundamentals | 2000-01-31 | 2026-10-31 | 254,888 |
 | `us/fundamentals/quarterly` | US company quarterly fundamentals | 2000-01-31 | 2026-11-30 | 1,051,636 |
@@ -85,6 +91,64 @@ vendor (see the table below and `describe()` in the package). Access is gated
 and approved by hand. Do not redistribute the files.
 
 ## Data dictionary
+
+### `cn_hk/equity/csi300_stock_daily`: CSI 300 constituent stocks daily prices
+
+Daily open, high, low, close, volume, dividends and splits for 810 Shanghai and Shenzhen A-share stocks that were members of the CSI 300 (HS300) index at some point between 2009 and 2025, from January 2006 to March 2025. Names and industries are in cn_hk/equity/csi300_stocks.
+
+**Source:** FinMultiTime (Xu et al., 2025, arXiv:2506.05019), time-series modality; prices originally from Yahoo Finance  
+**License:** MIT (as released by the FinMultiTime authors)  
+**Frequency:** daily  
+**Keys:** id `symbol`, date `date`  
+**Aliases:** `csi300_stock_daily`, `cn_csi300_stock_daily`, `hs300_stock_daily`
+
+**Coverage:** 2006-01-04 to 2025-03-31, 3,139,412 rows, 810 distinct `symbol`, 109.9 MB in 20 file(s).
+
+
+**Notes**
+
+- Symbols use Yahoo suffixes: .SS = Shanghai, .SZ = Shenzhen. Prices are in CNY.
+- open, high, low and close are adjusted for splits and dividends (back-adjusted to the last date), so they are not the traded prices; daily returns from close are total returns.
+- The stock list is everyone who was in the index at some point, without entry and exit dates, so it is not a point-in-time index membership and carries look-ahead bias if used as a universe.
+- Rows with volume 0 are suspension days; their prices repeat the last trade.
+- This dataset does not contain the CSI 300 index level itself.
+
+| Column | Type | Unit | Description |
+|---|---|---|---|
+| `symbol` | string |  | Yahoo Finance symbol (.SS or .SZ) |
+| `date` | date32 |  | Trading date (Beijing time) |
+| `open` | float64 | CNY | Open (adjusted) |
+| `high` | float64 | CNY | High (adjusted) |
+| `low` | float64 | CNY | Low (adjusted) |
+| `close` | float64 | CNY | Close (adjusted) |
+| `volume` | int64 | shares | Volume |
+| `dividend` | float64 | CNY per share | Cash dividend going ex on this date (0 if none) |
+| `split_ratio` | float64 |  | Split or bonus-share ratio effective on this date (0 if none) |
+
+### `cn_hk/equity/csi300_stocks`: CSI 300 constituent stocks with names and industries
+
+The 858 A-share stocks that were members of the CSI 300 (HS300) index at some point between 2009 and 2025, with their Chinese short name and Shenwan level-1 industry. Prices are in cn_hk/equity/csi300_stock_daily.
+
+**Source:** FinMultiTime (Xu et al., 2025, arXiv:2506.05019), stock description file  
+**License:** MIT (as released by the FinMultiTime authors)  
+**Frequency:** static  
+**Keys:** id `symbol`, date `-`  
+**Aliases:** `csi300_stocks`, `cn_csi300_stocks`, `hs300_stocks`
+
+**Coverage:** 858 rows, 858 distinct `symbol`, 0.0 MB in 1 file(s).
+
+
+**Notes**
+
+- Names are the short names at the time the list was made (some carry the 退市 delisting prefix).
+- has_prices is false for 68 stocks with no price history in the source; 20 stocks in the price data are missing from this list.
+
+| Column | Type | Unit | Description |
+|---|---|---|---|
+| `symbol` | string |  | Yahoo Finance symbol (.SS or .SZ) |
+| `name` | string |  | Short name (Chinese) |
+| `industry` | string |  | Shenwan (SWS) level-1 industry (Chinese) |
+| `has_prices` | bool |  | Whether the source has a price history for the stock |
 
 ### `us/equity/stock_daily`: US stock daily prices and returns
 

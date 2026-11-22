@@ -261,4 +261,26 @@ def write_fake_source(root: Path, reg: Registry) -> Path:
         },
         {"date": pa.timestamp("ns")},
     )
+
+    # --- CSI 300 constituents (per-stock CSVs with zoned timestamps) ---------
+    header = "Date,Open,High,Low,Close,Volume,Dividends,Stock Splits\n"
+    prices = root / "finmultitime/HS300_time_series"
+    prices.mkdir(parents=True, exist_ok=True)
+    (prices / "600001.SS.csv").write_text(
+        header
+        + "2019-12-31 00:00:00+08:00,10.0,10.5,9.9,10.2,1000,0.0,0.0\n"
+        + "2020-01-02 00:00:00+08:00,10.2,10.8,10.1,10.6,1200,0.3,0.0\n",
+        encoding="utf-8",
+    )
+    (prices / "000002.SZ.csv").write_text(
+        header + "2020-01-02 00:00:00+08:00,20.0,20.0,20.0,20.0,0,0.0,1.5\n",
+        encoding="utf-8",
+    )
+    (root / "finmultitime/hs300_stocks.csv").write_text(
+        "证券代码,证券简称,申万一级行业,table,image,ts,text\n"
+        "600001.SS,公司甲,银行,1,1,1,1\n"
+        "000002.SZ,公司乙,房地产,1,0,1,1\n"
+        "600003.SS,退市丙,传媒,0,0,0,1\n",
+        encoding="utf-8",
+    )
     return root

@@ -113,7 +113,10 @@ def convert_column(
     tz = options.get("timezone")
     if pa.types.is_string(src) or pa.types.is_large_string(src):
         if pa.types.is_date32(target):
-            return pc.strptime(arr, format="%Y-%m-%d", unit="s").cast(pa.date32())
+            # Keep the local calendar date of values such as
+            # "2020-01-02 00:00:00+08:00" (converting through UTC would shift it).
+            day = pc.utf8_slice_codeunits(arr, 0, 10)
+            return pc.strptime(day, format="%Y-%m-%d", unit="s").cast(pa.date32())
         if pa.types.is_timestamp(target):
             fmt = options.get("timestamp_format", "%Y-%m-%d %H:%M:%S")
             return _to_naive_or_zoned(pc.strptime(arr, format=fmt, unit="us"), target, tz)

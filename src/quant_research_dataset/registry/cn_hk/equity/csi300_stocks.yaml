@@ -1,0 +1,26 @@
+id: cn_hk/equity/csi300_stocks
+title: CSI 300 constituent stocks with names and industries
+aliases: [cn_csi300_stocks, hs300_stocks]
+market: cn_hk
+asset_class: equity
+frequency: static
+source: FinMultiTime (Xu et al., 2025, arXiv:2506.05019), stock description file
+license: MIT (as released by the FinMultiTime authors)
+publish: true
+description: >
+  The 858 A-share stocks that were members of the CSI 300 (HS300) index at
+  some point between 2009 and 2025, with their Chinese short name and
+  Shenwan level-1 industry. Prices are in cn_hk/equity/csi300_stock_daily.
+id_column: symbol
+sort_by: [symbol]
+notes:
+  - "Names are the short names at the time the list was made (some carry the 退市 delisting prefix)."
+  - "has_prices is false for 68 stocks with no price history in the source; 20 stocks in the price data are missing from this list."
+build:
+  source: finmultitime/hs300_stocks.csv
+  format: csv
+columns:
+  - {name: symbol, source: 证券代码, type: string, description: Yahoo Finance symbol (.SS or .SZ)}
+  - {name: name, source: 证券简称, type: string, description: Short name (Chinese)}
+  - {name: industry, source: 申万一级行业, type: string, description: Shenwan (SWS) level-1 industry (Chinese)}
+  - {name: has_prices, source: ts, type: bool, description: Whether the source has a price history for the stock}

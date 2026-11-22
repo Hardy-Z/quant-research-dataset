@@ -82,6 +82,21 @@ def test_include_exclude_ids(data_dir: Path) -> None:
     assert set(_read(data_dir, "cn_hk/fx/daily")["symbol"]) == {"CNYHKD=X"}
 
 
+def test_zoned_dates_keep_local_day(data_dir: Path) -> None:
+    bars = _read(data_dir, "cn_hk/equity/csi300_stock_daily").sort_values(["symbol", "date"])
+    assert list(bars["symbol"]) == ["000002.SZ", "600001.SS", "600001.SS"]
+    # "2019-12-31 00:00:00+08:00" is 2019-12-30 in UTC but must stay 2019-12-31
+    assert [str(d)[:10] for d in bars["date"]] == ["2020-01-02", "2019-12-31", "2020-01-02"]
+    assert bars["volume"].tolist() == [0, 1000, 1200]
+    assert bars["split_ratio"].tolist() == [1.5, 0.0, 0.0]
+    stocks = _read(data_dir, "cn_hk/equity/csi300_stocks")
+    assert stocks.set_index("symbol")["has_prices"].to_dict() == {
+        "000002.SZ": True,
+        "600001.SS": True,
+        "600003.SS": False,
+    }
+
+
 def test_sorted_output(data_dir: Path) -> None:
     crsp = _read(data_dir, "us/equity/stock_daily")
     crsp["date"] = pd.to_datetime(crsp["date"])

@@ -1,0 +1,39 @@
+id: cn_hk/equity/csi300_stock_daily
+title: CSI 300 constituent stocks daily prices
+aliases: [cn_csi300_stock_daily, hs300_stock_daily]
+market: cn_hk
+asset_class: equity
+frequency: daily
+source: FinMultiTime (Xu et al., 2025, arXiv:2506.05019), time-series modality; prices originally from Yahoo Finance
+license: MIT (as released by the FinMultiTime authors)
+publish: true
+description: >
+  Daily open, high, low, close, volume, dividends and splits for 810 Shanghai
+  and Shenzhen A-share stocks that were members of the CSI 300 (HS300) index
+  at some point between 2009 and 2025, from January 2006 to March 2025.
+  Names and industries are in cn_hk/equity/csi300_stocks.
+id_column: symbol
+date_column: date
+partitioning: year
+sort_by: [symbol, date]
+notes:
+  - "Symbols use Yahoo suffixes: .SS = Shanghai, .SZ = Shenzhen. Prices are in CNY."
+  - "open, high, low and close are adjusted for splits and dividends (back-adjusted to the last date), so they are not the traded prices; daily returns from close are total returns."
+  - "The stock list is everyone who was in the index at some point, without entry and exit dates, so it is not a point-in-time index membership and carries look-ahead bias if used as a universe."
+  - "Rows with volume 0 are suspension days; their prices repeat the last trade."
+  - "This dataset does not contain the CSI 300 index level itself."
+build:
+  source: finmultitime/HS300_time_series/*.csv
+  format: csv
+  options:
+    id_from_filename: '^(?P<id>\d{6}\.S[SZ])\.csv$'
+columns:
+  - {name: symbol, type: string, description: Yahoo Finance symbol (.SS or .SZ)}
+  - {name: date, source: Date, type: date32, description: Trading date (Beijing time)}
+  - {name: open, source: Open, type: float64, unit: CNY, description: Open (adjusted)}
+  - {name: high, source: High, type: float64, unit: CNY, description: High (adjusted)}
+  - {name: low, source: Low, type: float64, unit: CNY, description: Low (adjusted)}
+  - {name: close, source: Close, type: float64, unit: CNY, description: Close (adjusted)}
+  - {name: volume, source: Volume, type: int64, unit: shares, description: Volume}
+  - {name: dividend, source: Dividends, type: float64, unit: CNY per share, description: Cash dividend going ex on this date (0 if none)}
+  - {name: split_ratio, source: Stock Splits, type: float64, description: Split or bonus-share ratio effective on this date (0 if none)}

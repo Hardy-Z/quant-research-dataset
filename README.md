@@ -66,6 +66,7 @@ cleaning. This library does it once, in tested code, behind a small API:
 | `us/index/spx_daily` | S&P 500 index daily OHLC | OptionMetrics | 2015–2025 |
 | `us/rates/zero_curve` | USD zero-coupon yield curve | OptionMetrics | 2015–2025 |
 | `us/etf/daily_bars`, `bars_5min`, `bars_1min` | SPY, QQQ, IWM, TLT, IEF, GLD bars | Alpaca (local only) | 2016–2026 |
+| `cn_hk/equity/csi300_stock_daily`, `csi300_stocks` | Adjusted daily OHLCV, dividends and splits of 810 stocks that have been in the CSI 300 (HS300), with names and industries | FinMultiTime (MIT) | 2006–2025, 3.1M rows |
 | `cn_hk/equity/daily_bars`, `ah_pairs` | China A/H dual-listed shares | Yahoo Finance (local only) | 2014–2026 |
 | `cn_hk/fx/daily` | CNY/HKD, USD/HKD exchange rates | Yahoo Finance (local only) | 2014–2026 |
 
@@ -124,6 +125,7 @@ qrd.us.get_stock_daily(tickers="NVDA", start="2023-01-01")
 qrd.get_vol_surface("2020-01-01", "2020-12-31", days=30, delta=50, cp_flag="C")
 qrd.get_etf_bars("SPY", start="2024-01-02", end="2024-01-02", freq="1min")
 qrd.cn_hk.ah_premium(start="2024-01-01")  # A/H premium per pair
+qrd.cn_hk.get_csi300_prices(start="2024-01-01")  # CSI 300 constituent stocks
 qrd.zero_rate(["2024-03-15"], [45])  # 45-day zero rate
 ```
 
