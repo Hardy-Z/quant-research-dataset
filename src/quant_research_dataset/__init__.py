@@ -20,7 +20,6 @@ from .config import configure, get_settings
 from .errors import ConfigError, DatasetNotFoundError, ManifestError, QRDError, RegistryError
 from .markets import cn_hk, get_prices, us
 from .markets.us import (
-    get_etf_bars,
     get_fundamentals,
     get_spx_options,
     get_stock_daily,
@@ -48,7 +47,6 @@ __all__ = [
     "download",
     "duckdb_connect",
     "files_for",
-    "get_etf_bars",
     "get_fundamentals",
     "get_prices",
     "get_settings",

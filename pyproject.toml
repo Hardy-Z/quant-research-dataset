@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "quant-research-dataset"
 dynamic = ["version"]
-description = "One API for research-grade market data across markets: equities, options, ETFs, fundamentals and rates, served from a versioned Hugging Face dataset."
+description = "One API for research-grade market data across markets: equities, options, fundamentals and rates, served from a versioned Hugging Face dataset."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"

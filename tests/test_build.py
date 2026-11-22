@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import datetime as dt
 import hashlib
+from dataclasses import replace
 from pathlib import Path
 
 import pandas as pd
+import pyarrow as pa
 import pyarrow.parquet as pq
 import pytest
 
-from quant_research_dataset.build import build_dataset, periods_between
+from quant_research_dataset.build import build_dataset, convert_column, periods_between
 from quant_research_dataset.errors import QRDError
 from quant_research_dataset.manifest import Manifest
 from quant_research_dataset.registry import Registry
@@ -60,26 +62,30 @@ def test_column_conversions(data_dir: Path) -> None:
     opts = _read(data_dir, "us/options/spx_option_prices")
     assert sorted(opts["strike"]) == [3000.0, 3200.0, 3250.0]  # strike / 1000
 
-    bars = _read(data_dir, "us/etf/bars_5min")
-    first = bars.sort_values("timestamp")["timestamp"].iloc[0]
-    assert str(first.tz) == "UTC"
-    assert first.to_pydatetime() == dt.datetime(
-        2019, 12, 31, 20, 55, tzinfo=dt.timezone.utc
-    )  # 15:55 EST
-    july = bars["timestamp"].iloc[-1]
-    assert july.hour == 13 and july.minute == 30  # 09:30 EDT
+
+def test_naive_timestamps_are_localised() -> None:
+    raw = pa.chunked_array([["2019-12-31 15:55:00", "2020-07-01 09:30:00"]])
+    out = convert_column(
+        raw, pa.timestamp("us", tz="UTC"), {"timezone": "America/New_York"}
+    ).to_pylist()
+    assert out[0] == dt.datetime(2019, 12, 31, 20, 55, tzinfo=dt.timezone.utc)  # 15:55 EST
+    assert (out[1].hour, out[1].minute) == (13, 30)  # 09:30 EDT
 
 
-def test_id_from_filename_and_missing_columns(data_dir: Path) -> None:
-    etf = _read(data_dir, "us/etf/daily_bars")
-    assert set(etf["symbol"]) == {"SPY", "GLD"}
-    assert etf.loc[etf.symbol == "SPY", "high"].isna().all()
-    assert etf.loc[etf.symbol == "GLD", "volume"].iloc[0] == 7_000_000
+def test_id_from_filename(data_dir: Path) -> None:
+    bars = _read(data_dir, "cn_hk/equity/csi300_stock_daily")
+    assert set(bars["symbol"]) == {"600001.SS", "000002.SZ"}
 
 
-def test_include_exclude_ids(data_dir: Path) -> None:
-    assert set(_read(data_dir, "cn_hk/equity/daily_bars")["symbol"]) == {"600001.SS", "0001.HK"}
-    assert set(_read(data_dir, "cn_hk/fx/daily")["symbol"]) == {"CNYHKD=X"}
+def test_include_exclude_ids(tmp_path: Path, source_root: Path, registry: Registry) -> None:
+    spec = registry.get("cn_hk/equity/csi300_stock_daily")
+    for build, expected in (
+        (replace(spec.build, include_ids=("000002.SZ",)), {"000002.SZ"}),
+        (replace(spec.build, exclude_ids=("000002.SZ",)), {"600001.SS"}),
+    ):
+        out = tmp_path / str(len(expected)) / "x"
+        build_dataset(replace(spec, build=build), source_root, out)
+        assert set(_read(out, spec.id)["symbol"]) == expected
 
 
 def test_zoned_dates_keep_local_day(data_dir: Path) -> None:

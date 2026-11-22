@@ -12,7 +12,7 @@
 **Docs:** [data dictionary](docs/datasets.md)
 
 **One Python API for research-grade market data across markets.** Equities,
-fundamentals, index options, rates and ETFs live in a versioned, partitioned
+fundamentals, index options and rates live in a versioned, partitioned
 Parquet dataset on the Hugging Face Hub. The package downloads only the
 partitions a query touches, pushes filters down into the Parquet scan and
 returns clean, documented `pandas` DataFrames.
@@ -65,13 +65,9 @@ cleaning. This library does it once, in tested code, behind a small API:
 | `us/options/spx_vol_surface` | Standardized S&P 500 implied volatility surface | OptionMetrics | 2015–2025 |
 | `us/index/spx_daily` | S&P 500 index daily OHLC | OptionMetrics | 2015–2025 |
 | `us/rates/zero_curve` | USD zero-coupon yield curve | OptionMetrics | 2015–2025 |
-| `us/etf/daily_bars`, `bars_5min`, `bars_1min` | SPY, QQQ, IWM, TLT, IEF, GLD bars | Alpaca (local only) | 2016–2026 |
 | `cn_hk/equity/csi300_stock_daily`, `csi300_stocks` | Adjusted daily OHLCV, dividends and splits of 810 stocks that have been in the CSI 300 (HS300), with names and industries | FinMultiTime (MIT) | 2006–2025, 3.1M rows |
-| `cn_hk/equity/daily_bars`, `ah_pairs` | China A/H dual-listed shares | Yahoo Finance (local only) | 2014–2026 |
-| `cn_hk/fx/daily` | CNY/HKD, USD/HKD exchange rates | Yahoo Finance (local only) | 2014–2026 |
 
-Datasets marked *local only* are not on the Hub because of their vendor terms; build them
-from your own copy with `qrd build`. Full column-level documentation: [docs/datasets.md](docs/datasets.md), or
+Full column-level documentation: [docs/datasets.md](docs/datasets.md), or
 `qrd.describe("us_stock_daily")` in Python.
 
 ## Install and get access
@@ -120,12 +116,10 @@ qrd.load(dataset, ids=None, start=None, end=None, columns=None, filters=None, **
 
 ```python
 qrd.get_prices(market="us", start="2024-01-01", common_only=True)  # CRSP
-qrd.get_prices(["600036.SS", "3968.HK"], market="cn_hk")  # A/H shares
+qrd.get_prices(["600519.SS", "000001.SZ"], market="cn_hk")  # CSI 300 stocks
 qrd.us.get_stock_daily(tickers="NVDA", start="2023-01-01")
 qrd.get_vol_surface("2020-01-01", "2020-12-31", days=30, delta=50, cp_flag="C")
-qrd.get_etf_bars("SPY", start="2024-01-02", end="2024-01-02", freq="1min")
-qrd.cn_hk.ah_premium(start="2024-01-01")  # A/H premium per pair
-qrd.cn_hk.get_csi300_prices(start="2024-01-01")  # CSI 300 constituent stocks
+qrd.cn_hk.get_csi300_stocks()  # names and industries
 qrd.zero_rate(["2024-03-15"], [45])  # 45-day zero rate
 ```
 
@@ -159,8 +153,8 @@ percentile, 12-1 month signal, value-weighted deciles, 2016–2025.
 | Market (CRSP VW) | 13.4% | 15.4% | 0.90 | −24.7% |
 
 [examples/quickstart.ipynb](examples/quickstart.ipynb) tours the rest: point-in-time
-fundamentals, an SPX volatility smile, the 30-day ATM vol series, the A/H
-premium and SQL.
+fundamentals, an SPX volatility smile, the 30-day ATM vol series, CSI 300
+industry returns and SQL.
 
 ## Design
 

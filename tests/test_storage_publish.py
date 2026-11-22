@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import shutil
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -14,6 +15,7 @@ from quant_research_dataset.catalog import render_data_dictionary
 from quant_research_dataset.errors import ConfigError, QRDError
 from quant_research_dataset.manifest import Manifest
 from quant_research_dataset.publish import plan_release, verify
+from quant_research_dataset.registry import Registry
 from quant_research_dataset.storage import HubBackend
 
 
@@ -63,17 +65,19 @@ def test_data_dictionary_mentions_every_dataset(data_dir: Path, registry) -> Non
 
 
 def test_release_plan_only_includes_publishable(data_dir: Path, registry) -> None:
-    plan = plan_release(data_dir, "owner/qrd")
+    held_back = "us/rates/zero_curve"
+    registry = Registry([replace(s, publish=False) if s.id == held_back else s for s in registry])
+    plan = plan_release(data_dir, "owner/qrd", registry=registry)
     assert set(plan.datasets) == {s.id for s in registry if s.publish}
-    assert "us/etf/daily_bars" not in plan.datasets  # publish: false
+    assert held_back not in plan.datasets
     assert set(plan.manifest.datasets) == set(plan.datasets)
     front = yaml.safe_load(plan.card.split("---")[1])
     assert {c["config_name"] for c in front["configs"]} == {
         d.replace("/", "__") for d in plan.datasets
     }
     assert front["extra_gated_fields"]
-    explicit = plan_release(data_dir, "owner/qrd", datasets=["us_etf_daily"])
-    assert explicit.datasets == ("us/etf/daily_bars",)
+    explicit = plan_release(data_dir, "owner/qrd", datasets=["usd_zero_curve"], registry=registry)
+    assert explicit.datasets == (held_back,)
 
 
 def test_upload_patterns_select_exactly_the_release(data_dir: Path) -> None:
@@ -114,7 +118,7 @@ def test_cli_commands(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     assert cli.main(["list", "--market", "cn_hk"]) == 0
-    assert "cn_hk/fx/daily" in capsys.readouterr().out
+    assert "cn_hk/equity/csi300_stocks" in capsys.readouterr().out
     assert cli.main(["describe", "us_stock_daily", "--offline"]) == 0
     assert "permno" in capsys.readouterr().out
     assert cli.main(["verify", "--data-dir", str(data_dir)]) == 0

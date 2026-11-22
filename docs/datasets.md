@@ -4,15 +4,9 @@ Generated from the dataset registry by `qrd docs`. Do not edit by hand.
 
 | Dataset | Title | Frequency | Source |
 |---|---|---|---|
-| [`cn_hk/equity/ah_pairs`](#cn_hkequityah_pairs) | A/H dual-listed share pairs | static | Eastmoney A/H comparison board |
 | [`cn_hk/equity/csi300_stock_daily`](#cn_hkequitycsi300_stock_daily) | CSI 300 constituent stocks daily prices | daily | FinMultiTime (Xu et al., 2025, arXiv:2506.05019), time-series modality; prices originally from Yahoo Finance |
 | [`cn_hk/equity/csi300_stocks`](#cn_hkequitycsi300_stocks) | CSI 300 constituent stocks with names and industries | static | FinMultiTime (Xu et al., 2025, arXiv:2506.05019), stock description file |
-| [`cn_hk/equity/daily_bars`](#cn_hkequitydaily_bars) | China A-share and Hong Kong H-share daily bars | daily | Yahoo Finance (via yfinance) |
-| [`cn_hk/fx/daily`](#cn_hkfxdaily) | CNY/HKD and USD/HKD daily exchange rates | daily | Yahoo Finance (via yfinance) |
 | [`us/equity/stock_daily`](#usequitystock_daily) | US stock daily prices and returns | daily | CRSP US Stock Database, CIZ (v2) format, via WRDS |
-| [`us/etf/bars_1min`](#usetfbars_1min) | US ETF 1-minute bars | intraday | Alpaca Markets historical stock bars (SIP feed) |
-| [`us/etf/bars_5min`](#usetfbars_5min) | US ETF 5-minute bars | intraday | Alpaca Markets historical stock bars (SIP feed) |
-| [`us/etf/daily_bars`](#usetfdaily_bars) | US ETF daily bars | daily | Alpaca Markets historical stock bars (SIP feed) |
 | [`us/fundamentals/annual`](#usfundamentalsannual) | US company annual fundamentals | annual | S&P Compustat North America `comp.funda` via WRDS |
 | [`us/fundamentals/quarterly`](#usfundamentalsquarterly) | US company quarterly fundamentals | quarterly | S&P Compustat North America `comp.fundq` via WRDS |
 | [`us/index/spx_daily`](#usindexspx_daily) | S&P 500 index daily prices | daily | OptionMetrics IvyDB US `secprd` (Security Prices), SPX, via WRDS |
@@ -21,25 +15,6 @@ Generated from the dataset registry by `qrd docs`. Do not edit by hand.
 | [`us/rates/zero_curve`](#usrateszero_curve) | USD zero-coupon yield curve | daily | OptionMetrics IvyDB US `zerocd` (Zero Coupon Yield Curve), via WRDS |
 
 ## Market: `cn_hk`
-
-### `cn_hk/equity/ah_pairs`: A/H dual-listed share pairs
-
-Companies with both an A-share line (Shanghai or Shenzhen, in CNY) and an H-share line (Hong Kong, in HKD), with the Yahoo Finance symbol of each.
-
-**Source:** Eastmoney A/H comparison board  
-**License:** Public listing information  
-**Frequency:** static  
-**Keys:** id `a_symbol`, date `-`  
-**Aliases:** `ah_pairs`
-
-**Coverage:** 100 rows, 100 distinct `a_symbol`, 0.0 MB in 1 file(s).
-
-
-| Column | Type | Unit | Description |
-|---|---|---|---|
-| `a_symbol` | string |  | A-share Yahoo symbol (.SS or .SZ) |
-| `h_symbol` | string |  | H-share Yahoo symbol (.HK) |
-| `name` | string |  | Company name (Chinese) |
 
 ### `cn_hk/equity/csi300_stock_daily`: CSI 300 constituent stocks daily prices
 
@@ -98,58 +73,6 @@ The 858 A-share stocks that were members of the CSI 300 (HS300) index at some po
 | `name` | string |  | Short name (Chinese) |
 | `industry` | string |  | Shenwan (SWS) level-1 industry (Chinese) |
 | `has_prices` | bool |  | Whether the source has a price history for the stock |
-
-### `cn_hk/equity/daily_bars`: China A-share and Hong Kong H-share daily bars
-
-Daily prices for the A-share and H-share lines of about 100 companies dual listed in Shanghai/Shenzhen and Hong Kong. Pair the two lines with cn_hk/equity/ah_pairs.
-
-**Source:** Yahoo Finance (via yfinance)  
-**License:** Yahoo Finance terms of service  
-**Frequency:** daily  
-**Keys:** id `symbol`, date `date`  
-**Aliases:** `daily_bars`, `ah_stock_daily`
-
-**Coverage:** 2014-01-02 to 2026-11-20, 606,826 rows, 239 distinct `symbol`, 8.6 MB in 1 file(s).
-
-
-**Notes**
-
-- Symbols use Yahoo suffixes: .SS = Shanghai, .SZ = Shenzhen, .HK = Hong Kong.
-- A shares are quoted in CNY and H shares in HKD; use cn_hk/fx/daily to convert.
-- adj_close is adjusted for splits and dividends; open and close are not.
-
-| Column | Type | Unit | Description |
-|---|---|---|---|
-| `symbol` | string |  | Yahoo Finance symbol |
-| `date` | date32 |  | Trading date (local exchange) |
-| `open` | float64 | local currency | Open |
-| `close` | float64 | local currency | Close |
-| `adj_close` | float64 | local currency | Close adjusted for splits and dividends |
-| `volume` | float64 | shares | Volume |
-
-### `cn_hk/fx/daily`: CNY/HKD and USD/HKD daily exchange rates
-
-Daily exchange rates used to put A shares (CNY) and H shares (HKD) on the same currency.
-
-**Source:** Yahoo Finance (via yfinance)  
-**License:** Yahoo Finance terms of service  
-**Frequency:** daily  
-**Keys:** id `symbol`, date `date`  
-**Aliases:** `daily`, `cny_hkd_fx_daily`
-
-**Coverage:** 2014-01-01 to 2026-11-20, 6,711 rows, 2 distinct `symbol`, 0.1 MB in 1 file(s).
-
-
-**Notes**
-
-- CNYHKD=X is HKD per 1 CNY; HKD=X is HKD per 1 USD.
-
-| Column | Type | Unit | Description |
-|---|---|---|---|
-| `symbol` | string |  | Yahoo Finance symbol |
-| `date` | date32 |  | Date |
-| `open` | float64 |  | Open rate |
-| `close` | float64 |  | Close rate |
 
 ## Market: `us`
 
@@ -211,87 +134,6 @@ Daily prices, returns, volume and shares outstanding for every US-listed securit
 | `cum_fac_pr` | float64 |  | Cumulative price adjustment factor |
 | `vwretd` | float64 | decimal | CRSP value-weighted market return incl. dividends |
 | `sprtrn` | float64 | decimal | S&P 500 index return |
-
-### `us/etf/bars_1min`: US ETF 1-minute bars
-
-1-minute open and close for SPY, QQQ and IWM during regular trading hours (09:30-16:00 New York time), adjusted for splits and dividends.
-
-**Source:** Alpaca Markets historical stock bars (SIP feed)  
-**License:** Alpaca market data terms  
-**Frequency:** intraday  
-**Keys:** id `symbol`, date `timestamp`  
-**Aliases:** `bars_1min`, `us_etf_1min`
-
-**Coverage:** 2016-01-04 to 2026-09-25, 3,150,459 rows, 3 distinct `symbol`, 24.6 MB in 11 file(s).
-
-
-**Notes**
-
-- timestamp is the bar open time in UTC.
-- Known gaps: QQQ has a single bar on 2018-05-02 and 2018-05-03; on 2020-03-09/12/16/18, 14 bars are missing (market-wide circuit-breaker halts).
-- Early-close days (day after Thanksgiving, Christmas Eve, July 3) include bars after the 13:00 close.
-
-| Column | Type | Unit | Description |
-|---|---|---|---|
-| `symbol` | string |  | Ticker |
-| `timestamp` | timestamp[us, UTC] |  | Bar open time (UTC) |
-| `open` | float64 | USD | Open (adjusted) |
-| `close` | float64 | USD | Close (adjusted) |
-
-### `us/etf/bars_5min`: US ETF 5-minute bars
-
-5-minute OHLCV bars for SPY during regular trading hours (09:30-16:00 New York time), adjusted for splits and dividends.
-
-**Source:** Alpaca Markets historical stock bars (SIP feed)  
-**License:** Alpaca market data terms  
-**Frequency:** intraday  
-**Keys:** id `symbol`, date `timestamp`  
-**Aliases:** `bars_5min`, `us_etf_5min`
-
-**Coverage:** 2016-01-04 to 2026-09-25, 210,387 rows, 1 distinct `symbol`, 4.3 MB in 11 file(s).
-
-
-**Notes**
-
-- timestamp is the bar open time in UTC. Convert with df.timestamp.dt.tz_convert('America/New_York').
-
-| Column | Type | Unit | Description |
-|---|---|---|---|
-| `symbol` | string |  | Ticker |
-| `timestamp` | timestamp[us, UTC] |  | Bar open time (UTC) |
-| `open` | float64 | USD | Open (adjusted) |
-| `high` | float64 | USD | High (adjusted) |
-| `low` | float64 | USD | Low (adjusted) |
-| `close` | float64 | USD | Close (adjusted) |
-| `volume` | float64 | shares | Volume (adjusted) |
-
-### `us/etf/daily_bars`: US ETF daily bars
-
-Daily bars for liquid US ETFs (SPY, QQQ, IWM, TLT, IEF, GLD), adjusted for splits and dividends. Useful as benchmarks and for cross-asset studies.
-
-**Source:** Alpaca Markets historical stock bars (SIP feed)  
-**License:** Alpaca market data terms  
-**Frequency:** daily  
-**Keys:** id `symbol`, date `date`  
-**Aliases:** `daily_bars`, `us_etf_daily`
-
-**Coverage:** 2016-01-04 to 2026-09-25, 16,188 rows, 6 distinct `symbol`, 0.2 MB in 1 file(s).
-
-
-**Notes**
-
-- SPY, QQQ and IWM have open and close only; high, low and volume are null for them.
-- Prices are split and dividend adjusted, so close-to-close changes are total returns.
-
-| Column | Type | Unit | Description |
-|---|---|---|---|
-| `symbol` | string |  | Ticker |
-| `date` | date32 |  | Trading date |
-| `open` | float64 | USD | Open (adjusted) |
-| `high` | float64 | USD | High (adjusted) |
-| `low` | float64 | USD | Low (adjusted) |
-| `close` | float64 | USD | Close (adjusted) |
-| `volume` | float64 | shares | Volume (adjusted) |
 
 ### `us/fundamentals/annual`: US company annual fundamentals
 

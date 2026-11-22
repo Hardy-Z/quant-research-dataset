@@ -107,17 +107,24 @@ ax.set_ylabel("implied vol");""",
     (
         "md",
         """\
-## 6. Beyond the US: the A/H share premium
+## 6. Beyond the US: CSI 300 industries
 
-The same API covers China A shares and the Hong Kong H shares of the same companies.""",
+The same API covers the China A-share stocks that have been in the CSI 300. Prices are
+adjusted, so close-to-close changes are total returns. Days without trading (volume 0) are dropped.""",
     ),
     (
         "code",
         """\
-prem = qrd.cn_hk.ah_premium(start="2018-01-01")
-ax = prem.groupby("date").premium.median().plot(figsize=(9, 3.5), title="Median A/H premium across dual-listed pairs")
-ax.axhline(0, color="grey", lw=0.8)
-ax.set_ylabel("A price / H price - 1");""",
+stocks = qrd.cn_hk.get_csi300_stocks()
+px = qrd.cn_hk.get_csi300_prices(start="2015-01-01", columns=["symbol", "date", "close", "volume"])
+px = px[px.volume > 0].sort_values(["symbol", "date"])
+px["ret"] = px.groupby("symbol").close.pct_change()
+px = px.merge(stocks[["symbol", "industry"]], on="symbol")
+names = {"银行": "Banks", "食品饮料": "Food & beverage", "电子": "Electronics", "医药生物": "Pharma & biotech"}
+ind = px[px.industry.isin(names)].groupby(["date", "industry"]).ret.mean().unstack().rename(columns=names)
+ax = (1 + ind.fillna(0)).cumprod().plot(figsize=(9, 3.5), logy=True,
+                                         title="Equal-weighted CSI 300 stocks by industry (growth of 1)")
+ax.set_ylabel("growth of 1");""",
     ),
     ("md", "## 7. SQL with DuckDB"),
     (

@@ -22,7 +22,6 @@ SPX_OPTIONS = "us/options/spx_option_prices"
 SPX_SURFACE = "us/options/spx_vol_surface"
 SPX_INDEX = "us/index/spx_daily"
 ZERO_CURVE = "us/rates/zero_curve"
-ETF_BARS = {"1d": "us/etf/daily_bars", "5min": "us/etf/bars_5min", "1min": "us/etf/bars_1min"}
 
 
 def _frame(obj: Any) -> pd.DataFrame:
@@ -220,17 +219,3 @@ def get_vol_surface(
     if cp_flag is not None:
         filters["cp_flag"] = cp_flag
     return _frame(load(SPX_SURFACE, start=start, end=end, filters=filters or None))
-
-
-# ------------------------------------------------------------------------ ETFs
-def get_etf_bars(
-    symbols: str | Sequence[str] | None = None,
-    start: DateLike | None = None,
-    end: DateLike | None = None,
-    freq: Literal["1d", "5min", "1min"] = "1d",
-    columns: Sequence[str] | None = None,
-) -> pd.DataFrame:
-    """ETF bars at daily, 5-minute or 1-minute frequency."""
-    if freq not in ETF_BARS:
-        raise QRDError(f"freq must be one of {sorted(ETF_BARS)}")
-    return _frame(load(ETF_BARS[freq], symbols, start, end, columns))

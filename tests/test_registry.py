@@ -31,7 +31,7 @@ def _minimal(**over: object) -> dict:
 
 def test_builtin_registry_loads(registry: Registry) -> None:
     ids = [s.id for s in registry]
-    assert len(ids) == len(set(ids)) >= 13
+    assert len(ids) == len(set(ids)) >= 9
     assert {"us", "cn_hk"} <= {s.market for s in registry}
     for spec in registry:
         assert spec.path is not None and spec.path.parent.as_posix().endswith(
@@ -65,10 +65,15 @@ def test_alias_resolution(registry: Registry) -> None:
     assert "us_fundamentals_quarterly" in registry and "nope" not in registry
 
 
-def test_ambiguous_name_is_rejected(registry: Registry) -> None:
-    # "daily_bars" exists in both us/etf and cn_hk/equity
+def test_ambiguous_name_is_rejected() -> None:
+    reg = Registry(
+        [
+            DatasetSpec.from_dict(_minimal()),
+            DatasetSpec.from_dict(_minimal(id="yy/equity/toy", market="yy")),
+        ]
+    )
     with pytest.raises(DatasetNotFoundError, match="ambiguous"):
-        registry.resolve("daily_bars")
+        reg.resolve("toy")
 
 
 def test_unknown_dataset() -> None:

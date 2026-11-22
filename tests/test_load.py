@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime as dt
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -9,6 +10,7 @@ import pytest
 
 import quant_research_dataset as qrd
 from quant_research_dataset.errors import ConfigError, ManifestError, QRDError
+from quant_research_dataset.query import _scalar_for
 from quant_research_dataset.storage import LocalBackend
 
 
@@ -85,11 +87,14 @@ def test_empty_result_keeps_schema(local: Path) -> None:
     assert df.empty and list(df.columns) == ["date", "permno"]
 
 
-def test_intraday_date_only_end_is_inclusive(local: Path) -> None:
-    df = qrd.load("us_etf_5min", start="2019-12-31", end="2019-12-31")
-    assert len(df) == 1  # the 20:55 UTC bar on 2019-12-31
-    df = qrd.load("us_etf_5min", start="2020-01-02 14:30", end="2020-01-02 14:30")
-    assert len(df) == 1
+def test_intraday_date_only_end_is_inclusive() -> None:
+    utc = pa.timestamp("us", tz="UTC")
+    bound, exclusive = _scalar_for("2019-12-31", utc, end=True)
+    assert exclusive and bound.as_py() == dt.datetime(2020, 1, 1, tzinfo=dt.timezone.utc)
+    bound, exclusive = _scalar_for("2020-01-02 14:30", utc, end=True)
+    assert not exclusive and bound.as_py() == dt.datetime(
+        2020, 1, 2, 14, 30, tzinfo=dt.timezone.utc
+    )
 
 
 def test_validation_errors(local: Path) -> None:
@@ -102,15 +107,16 @@ def test_validation_errors(local: Path) -> None:
     with pytest.raises(QRDError, match="no id column"):
         qrd.load("spx_vol_surface", ids=1)
     with pytest.raises(QRDError, match="no date column"):
-        qrd.load("ah_pairs", start="2020-01-01")
+        qrd.load("csi300_stocks", start="2020-01-01")
 
 
 def test_static_table(local: Path) -> None:
-    pairs = qrd.load("ah_pairs")
-    assert pairs.iloc[0].to_dict() == {
-        "a_symbol": "600001.SS",
-        "h_symbol": "0001.HK",
-        "name": "公司甲",
+    stocks = qrd.load("csi300_stocks")
+    assert stocks.iloc[0].to_dict() == {
+        "symbol": "000002.SZ",
+        "name": "公司乙",
+        "industry": "房地产",
+        "has_prices": True,
     }
 
 

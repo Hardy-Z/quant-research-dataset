@@ -21,7 +21,7 @@ def test_common_only_screen(local: Path) -> None:
 
 def test_get_prices_dispatch(local: Path) -> None:
     assert set(qrd.get_prices(start="2020-01-01", common_only=True)["permno"]) == {10001, 10002}
-    assert set(qrd.get_prices(market="cn_hk")["symbol"]) == {"600001.SS", "0001.HK"}
+    assert set(qrd.get_prices(market="cn_hk")["symbol"]) == {"600001.SS", "000002.SZ"}
     with pytest.raises(QRDError, match="no price dataset"):
         qrd.get_prices(market="mars")
 
@@ -127,22 +127,6 @@ def test_zero_rate_from_store(local: Path) -> None:
 def test_vol_surface_grid_filter(local: Path) -> None:
     df = qrd.get_vol_surface("2019-12-31", "2019-12-31", days=30, delta=50, cp_flag="C")
     assert df["impl_volatility"].tolist() == [0.12]
-
-
-def test_etf_bars(local: Path) -> None:
-    assert len(qrd.get_etf_bars("SPY")) == 2
-    assert set(qrd.get_etf_bars(freq="1min")["symbol"]) == {"SPY", "QQQ"}
-    with pytest.raises(QRDError):
-        qrd.get_etf_bars(freq="1h")  # type: ignore[arg-type]
-
-
-def test_ah_premium(local: Path) -> None:
-    prem = qrd.cn_hk.ah_premium()
-    first = prem.iloc[0]
-    # A = 11 CNY; H = 10 HKD / 1.1 HKD per CNY = 9.0909 CNY
-    assert first["h_price_cny"] == pytest.approx(10 / 1.1)
-    assert first["premium"] == pytest.approx(11 / (10 / 1.1) - 1)
-    assert len(prem) == 2
 
 
 def test_duckdb_views(local: Path) -> None:
